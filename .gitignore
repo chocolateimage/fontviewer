@@ -1,0 +1,7 @@
+obj-x86_64-linux-gnu
+debian/.debhelper
+debian/fontviewer
+debian/fontviewer.substvars
+debian/debhelper-build-stamp
+debian/files
+builddir

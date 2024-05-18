@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.10)
+#set(CMAKE_BUILD_TYPE Debug)
+project(fontviewer)
+
+find_package(PkgConfig REQUIRED)
+find_package(Fontconfig REQUIRED)
+
+pkg_check_modules(GTKMM gtkmm-3.0)
+pkg_check_modules(CAIRO cairomm-1.0)
+pkg_check_modules(FREETYPE freetype2)
+
+link_directories(${GTKMM_LIBRARY_DIRS} ${CAIRO_LIBRARY_DIRS} ${FREETYPE_LIBRARY_DIRS})
+include_directories(${GTKMM_INCLUDE_DIRS} ${Fontconfig_INCLUDE_DIRS} ${CAIRO_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
+
+add_executable(fontviewer src/main.cpp src/sushi-font-loader.c src/sushi-font-widget.c)
+
+
+target_link_libraries(fontviewer ${GTKMM_LIBRARIES} ${Fontconfig_LIBRARIES} ${CAIRO_LIBRARIES} ${FREETYPE_LIBRARIES})

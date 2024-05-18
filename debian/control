@@ -1,0 +1,21 @@
+Source: fontviewer
+Priority: optional
+Section: utils
+Maintainer: chocolateimage <chocolateimage@protonmail.com>
+Build-Depends:
+  meson,
+  libgtk-3-dev (>= 3.10),
+  libfontconfig-dev,
+  libgtkmm-3.0-dev,
+  libfreetype-dev,
+  libcairomm-1.0-dev
+
+
+Package: fontviewer
+Priority: optional
+Section: utils
+Architecture: all
+Depends:
+  libgtk-3-0,
+  fontconfig,
+Description: View and install fonts

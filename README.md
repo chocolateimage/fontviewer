@@ -6,7 +6,21 @@ View and install fonts on a Linux system
 
 ---
 
-### Build
+
+## Installation
+
+To add the PPA (required for the package), run the following commands:
+```bash
+sudo add-apt-repository ppa:chocolateimage/ppa
+sudo apt update
+```
+To install the package, run:
+```bash
+sudo apt install fontviewer
+```
+
+
+## Building from source
 You need to have `meson` installed.
 
 Run this command to setup the build directory:
@@ -24,8 +38,3 @@ To run fontviewer run:
 # Make sure to be in the build directory!
 ./fontviewer
 ```
-
-
-### Installation
-
-*More info coming soon*

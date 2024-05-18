@@ -1,6 +1,9 @@
 # Font Viewer
 View and install fonts on a Linux system
 
+![image](https://github.com/chocolateimage/fontviewer/assets/45315451/f3f4cfc3-c5d0-4eb1-84a3-82e0ec4d9d8d)
+
+
 ---
 
 ### Build

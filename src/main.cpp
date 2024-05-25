@@ -242,6 +242,8 @@ void loadFonts() {
 class MainWindow: public Gtk::Window {
     public:
         MainWindow(std::string*);
+        void reloadFonts();
+        FontListItem* addFontListItem(FontFamilyData*);
         bool queuedfontListScrollCallback();
         void fontListScroll();
         void switchToFontFamily(int);
@@ -283,7 +285,6 @@ class MainWindow: public Gtk::Window {
 
 
 MainWindow::MainWindow(std::string* defaultFileName) {
-    loadFonts();
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
         ".font-style-window {background-color: @insensitive_base_color;} "
@@ -353,65 +354,8 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     fontsListWidget->set_orientation(Gtk::ORIENTATION_VERTICAL);
     fontsListScrollWidget->add(*fontsListWidget);
 
-    int fontIndex = 0;
-    for (auto a : *fontFamilies) {
-        FontListItem* fontListItem = new FontListItem();
-        fontListItem->fontFamily = a;
-        fontListItem->hasBeenViewed = false;
+    this->reloadFonts();
 
-        Gtk::Button* btn = new Gtk::Button();
-        fontListItem->button = btn;
-
-        btn->signal_clicked().connect(sigc::bind(sigc::mem_fun(*this,&MainWindow::switchToFontFamily),fontIndex));
-
-        if (a->paths->size() > 1) {
-            auto tooltip = Glib::ustring::compose(_("%1 different files"),std::to_string(a->paths->size()));
-            if (a->isModifiedGrouping) {
-                tooltip = tooltip + "\n" + _("Styles are combined into one single font.");
-            }
-            btn->set_tooltip_text(tooltip);
-        } else {
-            btn->set_tooltip_text(a->paths->at(0));
-        }
-
-        btn->set_relief(Gtk::RELIEF_NONE);
-
-        Gtk::VBox* btnBox = new Gtk::VBox();
-        btnBox->set_margin_left(8);
-        btnBox->set_margin_right(8);
-        btnBox->set_spacing(8);
-
-        Gtk::HBox* btnHeaderBox = new Gtk::HBox();
-        btnHeaderBox->set_spacing(4);
-
-        Gtk::Label* btnLabel = new Gtk::Label();
-        btnLabel->set_alignment(Gtk::ALIGN_START);
-        btnLabel->set_text(a->family);
-        btnHeaderBox->pack_start(*btnLabel,Gtk::PACK_SHRINK,0);
-        
-        if (a->styles->size() > 1) {
-            Gtk::Label* btnStyleCount = new Gtk::Label();
-            btnStyleCount->set_sensitive(false);
-            btnStyleCount->set_alignment(Gtk::ALIGN_START);
-            btnStyleCount->set_text(Glib::ustring::compose(_("%1 styles"),std::to_string(a->styles->size())));
-            btnHeaderBox->pack_start(*btnStyleCount,Gtk::PACK_SHRINK,0);
-        }
-
-        btnBox->add(*btnHeaderBox);
-
-        Gtk::Label* lblPreview = new Gtk::Label();
-        fontListItem->preview = lblPreview;
-        lblPreview->set_alignment(Gtk::ALIGN_START);
-        lblPreview->set_text(PANGRAM);
-        btnBox->add(*lblPreview);
-
-        btn->add(*btnBox);
-
-        fontsListWidget->add(*btn);
-        fontListItems->push_back(fontListItem);
-        fontIndex += 1;
-    }
-    Glib::signal_idle().connect(sigc::mem_fun(*this, &MainWindow::queuedfontListScrollCallback));
     fontViewWidget = new Gtk::HBox();
     fontFamilyScrollWidget = new Gtk::ScrolledWindow();
     fontFamilyScrollWidget->get_style_context()->add_class("font-family-window");
@@ -455,6 +399,78 @@ MainWindow::MainWindow(std::string* defaultFileName) {
         switchToFontFile(*defaultFileName);
         stack->set_transition_duration(200);
     }
+}
+
+void MainWindow::reloadFonts() {
+    for (auto a : *fontListItems) {
+        delete a->button;
+        delete a->fontFamily;
+    }
+    fontListItems->clear();
+    loadFonts();
+    for (auto a : *fontFamilies) {
+        addFontListItem(a);
+    }
+    Glib::signal_idle().connect(sigc::mem_fun(*this, &MainWindow::queuedfontListScrollCallback));
+}
+
+FontListItem* MainWindow::addFontListItem(FontFamilyData* a) {
+    FontListItem* fontListItem = new FontListItem();
+    fontListItem->fontFamily = a;
+    fontListItem->hasBeenViewed = false;
+
+    Gtk::Button* btn = new Gtk::Button();
+    fontListItem->button = btn;
+
+    btn->signal_clicked().connect(sigc::bind(sigc::mem_fun(*this,&MainWindow::switchToFontFamily),fontListItems->size()));
+
+    if (a->paths->size() > 1) {
+        auto tooltip = Glib::ustring::compose(_("%1 different files"),std::to_string(a->paths->size()));
+        if (a->isModifiedGrouping) {
+            tooltip = tooltip + "\n" + _("Styles are combined into one single font.");
+        }
+        btn->set_tooltip_text(tooltip);
+    } else {
+        btn->set_tooltip_text(a->paths->at(0));
+    }
+
+    btn->set_relief(Gtk::RELIEF_NONE);
+
+    Gtk::VBox* btnBox = new Gtk::VBox();
+    btnBox->set_margin_left(8);
+    btnBox->set_margin_right(8);
+    btnBox->set_spacing(8);
+
+    Gtk::HBox* btnHeaderBox = new Gtk::HBox();
+    btnHeaderBox->set_spacing(4);
+
+    Gtk::Label* btnLabel = new Gtk::Label();
+    btnLabel->set_alignment(Gtk::ALIGN_START);
+    btnLabel->set_text(a->family);
+    btnHeaderBox->pack_start(*btnLabel,Gtk::PACK_SHRINK,0);
+    
+    if (a->styles->size() > 1) {
+        Gtk::Label* btnStyleCount = new Gtk::Label();
+        btnStyleCount->set_sensitive(false);
+        btnStyleCount->set_alignment(Gtk::ALIGN_START);
+        btnStyleCount->set_text(Glib::ustring::compose(_("%1 styles"),std::to_string(a->styles->size())));
+        btnHeaderBox->pack_start(*btnStyleCount,Gtk::PACK_SHRINK,0);
+    }
+
+    btnBox->add(*btnHeaderBox);
+
+    Gtk::Label* lblPreview = new Gtk::Label();
+    fontListItem->preview = lblPreview;
+    lblPreview->set_alignment(Gtk::ALIGN_START);
+    lblPreview->set_text(PANGRAM);
+    btnBox->add(*lblPreview);
+
+    btn->add(*btnBox);
+    btn->show_all();
+
+    fontsListWidget->add(*btn);
+    fontListItems->push_back(fontListItem);
+    return fontListItem;
 }
 
 void MainWindow::switchToFontFamily(int fontIndex) {
@@ -793,7 +809,21 @@ void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, g
         self->loadFont();
         return;
     }
-
+    /*FcInitReinitialize();
+    FcConfig* newConfig = FcInitLoadConfigAndFonts();
+    FcConfigAppFontAddFile(newConfig,(FcChar8*)self->currentFontPath->c_str());
+    FcConfigBuildFonts(newConfig);
+    FcConfigSetCurrent(newConfig);*/
+    /*FcStrList* strlist = FcConfigGetConfigFiles(NULL);
+    FcChar8* strlistitem;
+    while ((strlistitem = FcStrListNext(strlist)) != NULL) {
+        std::cout << strlistitem << std::endl;
+    }
+    pango_font_map_load_font()*/
+    //FcConfigBuildFonts();
+    FontListItem* fontListItem = self->addFontListItem(self->familyData);
+    self->fontsListWidget->reorder_child(*fontListItem->button,0); // make new installed font appear at the top
+    self->fontListScroll();
     fontFamilies->push_back(self->familyData);
     self->loadFont();
 }

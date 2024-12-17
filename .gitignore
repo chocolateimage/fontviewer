@@ -5,5 +5,3 @@ debian/fontviewer.substvars
 debian/debhelper-build-stamp
 debian/files
 builddir
-
-.vscode/

@@ -845,14 +845,3 @@ int main(int argc, char** argv) {
     app->run(*win);
     return 0;
 }
-
-/*int main(int argc, char** argv) {
-    setlocale(LC_ALL, "");
-    auto app = Gtk::Application::create(argc,argv,"",Gio::APPLICATION_HANDLES_OPEN);
-    FcInit();
-    MainWindow* win = new MainWindow();
-
-    int exitStatus = app->run(*win);
-    //FcFini(); // can cause FcCacheFini: Assertion `fcCacheChains[i] == NULL' failed.
-    return exitStatus;
-}*/

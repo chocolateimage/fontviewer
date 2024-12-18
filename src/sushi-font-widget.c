@@ -272,63 +272,6 @@ build_charlist_for_face (FT_Face face,
   return g_strdup (string->str);
 }
 
-/*static gchar *
-random_string_from_available_chars (FT_Face face,
-                                    gint n_chars)
-{
-  g_autofree gchar *chars = NULL;
-  g_autoptr(GString) retval = NULL;
-  gint idx, rand, total_chars;
-  gchar *ptr, *end;
-
-  idx = 0;
-  chars = build_charlist_for_face (face, &total_chars);
-
-  if (total_chars == 0)
-    return NULL;
-
-  if (total_chars <= n_chars)
-    return g_steal_pointer (&chars);
-
-  retval = g_string_new (NULL);
-
-  while (idx < n_chars) {
-    rand = g_random_int_range (0, total_chars);
-
-    ptr = g_utf8_offset_to_pointer (chars, rand);
-    end = g_utf8_find_next_char (ptr, NULL);
-
-    g_string_append_len (retval, ptr, end - ptr);
-    idx++;
-  }
-
-  return g_strdup (retval->str);
-}*/
-
-/*static gboolean
-set_pango_sample_string (SushiFontWidget *self)
-{
-  const gchar *sample_string;
-  gboolean retval = FALSE;
-
-  sample_string = pango_language_get_sample_string (pango_language_from_string (NULL));
-  if (check_font_contain_text (self->face, sample_string))
-    retval = TRUE;
-
-  if (!retval) {
-    sample_string = pango_language_get_sample_string (pango_language_from_string ("C"));
-    if (check_font_contain_text (self->face, sample_string))
-      retval = TRUE;
-  }
-
-  g_clear_pointer (&self->sample_string, g_free);
-
-  if (retval)
-    self->sample_string = g_strdup (sample_string);
-
-  return retval;
-}*/
-
 static void
 select_best_charmap (SushiFontWidget *self)
 {
@@ -476,11 +419,6 @@ sushi_font_widget_size_request (GtkWidget *drawing_area,
 
   cairo_set_font_size (cr, title_size);
   cairo_font_extents (cr, &font_extents);
-  /*text_extents (cr, self->font_name, &extents);
-  pixmap_height += font_extents.ascent + font_extents.descent +
-    extents.y_advance + LINE_SPACING;
-  pixmap_width = MAX (pixmap_width, extents.width + padding.left + padding.right);*/
-
 
   cairo_set_font_face (cr, font);
   cairo_set_font_size (cr, alpha_size);
@@ -610,46 +548,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_destroy(cr2);
   cairo_surface_destroy(cr2surface);
 
-
-  /*gtk_style_context_get_background_color (context, state, &color);
-  cairo_pattern_t* linear_gradient = cairo_pattern_create_linear(0,0,allocated_width,allocated_height);
-  cairo_pattern_add_color_stop_rgba(linear_gradient,0,color.red,color.green,color.blue,0);
-  cairo_pattern_add_color_stop_rgba(linear_gradient,0.8,color.red,color.green,color.blue,0);
-  cairo_pattern_add_color_stop_rgba(linear_gradient,1,color.red,color.green,color.blue,1);
-  
-  cairo_set_source(cr,linear_gradient);
-  cairo_rectangle(cr,0,0,allocated_width,allocated_height);
-  cairo_fill(cr);
-
-  cairo_pattern_destroy(linear_gradient);*/
-
-  /*cairo_surface_t* originalsurface = cairo_get_target(cr);
-  cairo_surface_t* todrawsurface = cairo_surface_create_similar_image(
-    originalsurface,
-    CAIRO_FORMAT_ARGB32,
-    allocated_width,
-    allocated_height
-  );
-  cairo_t* todraw = cairo_create(todrawsurface);
-
-
-
-  cairo_set_source_surface(todraw,originalsurface,0,0);
-  cairo_paint(todraw);
-
-  cairo_set_source_rgba(cr,0,0,0,0);
-  cairo_set_operator(cr,CAIRO_OPERATOR_CLEAR);
-  cairo_rectangle(cr,0,0,allocated_width,allocated_height);
-  cairo_paint_with_alpha(cr,1);
-  cairo_set_operator(cr,CAIRO_OPERATOR_OVER);
-
-  cairo_set_source_surface(cr,todrawsurface,0,0);
-  cairo_paint(cr);
-  */
-  /*cairo_set_source(cr,linear_gradient);
-  cairo_rectangle(cr,0,0,allocated_width,allocated_height);
-  cairo_fill(cr);*/
-//cairo_pattern_destroy(linear_gradient);
   return FALSE;
 }
 

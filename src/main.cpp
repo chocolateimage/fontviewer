@@ -775,6 +775,16 @@ void MainWindow_installFontTask(GTask *task, gpointer source_object, gpointer ta
         return;
     }
 
+    GError* error = NULL;
+
+    if (!g_file_query_exists(fontDirFile,NULL)) {
+        g_file_make_directory_with_parents(fontDirFile,NULL,&error);
+        if (error != NULL) {
+            g_task_return_error(task,error);
+            return;
+        }
+    }
+
     GFile* originalFile = g_file_new_for_path(self->currentFontPath->c_str());
     char* basename = g_file_get_basename(originalFile);
     GFile* finalFile = g_file_get_child(fontDirFile,basename);
@@ -782,7 +792,7 @@ void MainWindow_installFontTask(GTask *task, gpointer source_object, gpointer ta
         g_task_return_boolean(task,false);
         return;
     }
-    GError* error = NULL;
+
     g_file_copy(originalFile,finalFile,G_FILE_COPY_NONE,cancellable,NULL,NULL,&error);
     if (error != NULL) {
         g_task_return_error(task,error);
@@ -865,14 +875,3 @@ int main(int argc, char** argv) {
     app->run(*win);
     return 0;
 }
-
-/*int main(int argc, char** argv) {
-    setlocale(LC_ALL, "");
-    auto app = Gtk::Application::create(argc,argv,"",Gio::APPLICATION_HANDLES_OPEN);
-    FcInit();
-    MainWindow* win = new MainWindow();
-
-    int exitStatus = app->run(*win);
-    //FcFini(); // can cause FcCacheFini: Assertion `fcCacheChains[i] == NULL' failed.
-    return exitStatus;
-}*/

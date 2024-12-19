@@ -13,4 +13,7 @@ executable(
         dependency('cairomm-1.0'),
         dependency('freetype2'),
     ],
+    install: true
 )
+
+install_data('data/fontviewer.desktop', install_dir: 'share/applications')

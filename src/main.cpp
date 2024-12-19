@@ -266,6 +266,7 @@ class MainWindow: public Gtk::Window {
         Gtk::Button* backButton;
         Gtk::Button* installButton;
         Gtk::ToggleButton* searchButton;
+        Gtk::ToggleButton* googleFontsButton;
         Gtk::Stack* stack;
         Gtk::ScrolledWindow* fontsListScrollWidget;
         Gtk::Box* fontsListWidget;
@@ -318,6 +319,10 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     searchButton = new Gtk::ToggleButton();
     searchButton->set_image_from_icon_name("edit-find-symbolic");
     headerBar->pack_end(*searchButton);
+
+    googleFontsButton = new Gtk::ToggleButton();
+    googleFontsButton->set_image_from_icon_name("fontviewer-google-symbolic");
+    headerBar->pack_end(*googleFontsButton);
     
     this->set_size_request(100,100);
     this->set_default_size(950,600);

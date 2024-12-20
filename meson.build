@@ -4,6 +4,7 @@ executable(
     'fontviewer',
     [
         'src/main.cpp',
+        'src/google-fonts-window.cpp',
         'src/sushi-font-widget.c',
         'src/sushi-font-loader.c',
     ],
@@ -12,6 +13,7 @@ executable(
         dependency('gtkmm-3.0'),
         dependency('cairomm-1.0'),
         dependency('freetype2'),
+        dependency('json-glib-1.0'),
     ],
     install: true
 )

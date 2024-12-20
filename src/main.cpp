@@ -15,6 +15,7 @@
 #include FT_MULTIPLE_MASTERS_H
 #include <freetype2/ft2build.h>
 #include "sushi-font-widget.h"
+#include "src/google-fonts-window.hpp"
 
 const char* PANGRAM = "The five boxing wizards jump quickly.";
 
@@ -253,6 +254,7 @@ class MainWindow: public Gtk::Window {
         void installFontClicked();
         bool windowKeyPressEvent(GdkEventKey* event);
         void searchUpdated();
+        void openGoogleFonts();
         ~MainWindow();
 
         int currentFontIndex;
@@ -266,7 +268,7 @@ class MainWindow: public Gtk::Window {
         Gtk::Button* backButton;
         Gtk::Button* installButton;
         Gtk::ToggleButton* searchButton;
-        Gtk::ToggleButton* googleFontsButton;
+        Gtk::Button* googleFontsButton;
         Gtk::Stack* stack;
         Gtk::ScrolledWindow* fontsListScrollWidget;
         Gtk::Box* fontsListWidget;
@@ -280,6 +282,8 @@ class MainWindow: public Gtk::Window {
         std::string* currentPreviewText;
         std::vector<FontStyleListItem*>* fontStyleListItems;
         std::vector<FontStyleRow*>* fontStyleRows;
+
+        GoogleFontsWindow* googleFontsWindow;
 };
 
 
@@ -303,6 +307,7 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     currentPreviewText = NULL;
     currentFontPath = NULL;
     currentFontIndex = -1;
+    googleFontsWindow = NULL;
     headerBar = new Gtk::HeaderBar();
     headerBar->set_title(_("All Fonts"));
     headerBar->set_show_close_button();
@@ -320,8 +325,9 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     searchButton->set_image_from_icon_name("edit-find-symbolic");
     headerBar->pack_end(*searchButton);
 
-    googleFontsButton = new Gtk::ToggleButton();
+    googleFontsButton = new Gtk::Button();
     googleFontsButton->set_image_from_icon_name("fontviewer-google-symbolic");
+    googleFontsButton->signal_clicked().connect(sigc::mem_fun(*this,&MainWindow::openGoogleFonts));
     headerBar->pack_end(*googleFontsButton);
     
     this->set_size_request(100,100);
@@ -833,6 +839,16 @@ void MainWindow::searchUpdated() {
         }
     }
     Glib::signal_idle().connect(sigc::mem_fun(*this, &MainWindow::queuedfontListScrollCallback));
+}
+
+void MainWindow::openGoogleFonts() {
+    if (googleFontsWindow != NULL) {
+        googleFontsWindow->present();
+        return;
+    }
+
+    googleFontsWindow = new GoogleFontsWindow();
+    googleFontsWindow->show_all();
 }
 
 MainWindow::~MainWindow() {

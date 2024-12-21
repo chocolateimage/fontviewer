@@ -47,12 +47,30 @@ GoogleFontsWindow::GoogleFontsWindow() {
     this->resize(1000, 700);
     this->set_title("Google Fonts");
 
+    stack = new Gtk::Stack();
+    stack->set_transition_duration(200);
+    stack->set_transition_type(Gtk::STACK_TRANSITION_TYPE_CROSSFADE);
+    this->add(*stack);
+
+    spinner = new Gtk::Spinner();
+    spinner->start();
+    stack->add(*spinner, "loading");
+
     scrolledWindow = new Gtk::ScrolledWindow();
     scrolledWindow->get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
     familyListBox = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
     scrolledWindow->add(*familyListBox);
-    this->add(*scrolledWindow);
+    stack->add(*scrolledWindow, "list");
 
+    GCancellable* cancellable = g_cancellable_new();
+    GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFamilies_callback,this);
+    g_task_set_task_data(task,this,NULL);
+    g_task_run_in_thread(task,GoogleFontsWindow_loadFamilies);
+    std::cout << "End" << std::endl;
+}
+
+void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
+    GoogleFontsWindow *self = (GoogleFontsWindow*)task_data;
     std::string response = loadStringFromURI("https://fonts.google.com/metadata/fonts");
 
     JsonParser *parser = json_parser_new();
@@ -121,16 +139,24 @@ GoogleFontsWindow::GoogleFontsWindow() {
         }
         g_list_free(stylesList);
 
-        this->families->push_back(family);
+        self->families->push_back(family);
     }
 
     g_object_unref(parser);
 
-    std::sort(this->families->begin(), this->families->end(), [](GoogleFontsFamily *a, GoogleFontsFamily *b) {
+    g_task_return_boolean(task, true);
+}
+
+void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
+    GoogleFontsWindow* self = (GoogleFontsWindow*)user_data;
+
+    self->stack->set_visible_child("list");
+
+    std::sort(self->families->begin(), self->families->end(), [](GoogleFontsFamily *a, GoogleFontsFamily *b) {
         return a->sortTrending < b->sortTrending;
     });
 
-    for (auto i : *this->families) {
+    for (auto i : *self->families) {
 
         GoogleFontsFamilyListItem* fontListItem = new GoogleFontsFamilyListItem();
         fontListItem->fontFamily = i;
@@ -180,12 +206,14 @@ GoogleFontsWindow::GoogleFontsWindow() {
 
         btn->add(*btnBox);
 
-        this->familyListBox->add(*btn);
+        btn->show_all();
+
+        self->familyListBox->add(*btn);
 
         i->button = btn;
-        fontListItems->push_back(fontListItem);
+        self->fontListItems->push_back(fontListItem);
     }
-    this->signal_check_resize().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
+    self->signal_check_resize().connect(sigc::mem_fun(*self,&GoogleFontsWindow::fontListScroll));
 }
 
 void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFontsFamilyLoadData* data) {

@@ -11,12 +11,17 @@ class GoogleFontsWindow: public Gtk::Window {
 
         void fontListScroll();
 
+        Gtk::Stack *stack;
+        Gtk::Spinner *spinner;
         Gtk::ScrolledWindow* scrolledWindow;
         Gtk::Box* familyListBox;
 
         std::vector<GoogleFontsFamilyListItem*>* fontListItems;
         std::vector<GoogleFontsFamily*>* families;
 };
+
+void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
+void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResult *res, gpointer user_data);
 
 struct GoogleFontsFamilyListItem {
     Gtk::Button* button;

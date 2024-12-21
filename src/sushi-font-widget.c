@@ -533,8 +533,8 @@ font_face_async_ready_cb (GObject *object,
                                        &error);
 
   if (error != NULL) {
-    g_signal_emit (self, signals[ERROR], 0, error);
     g_print ("Can't load the font face: %s\n", error->message);
+    g_signal_emit (self, signals[ERROR], 0, error);
 
     return;
   }

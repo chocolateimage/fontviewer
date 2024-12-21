@@ -220,7 +220,7 @@ void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFonts
     delete data->placeholderText;
 }
 
-void GoogleFontsWindow_fontFamilyError(SushiFontWidget* fontWidget, GoogleFontsFamilyLoadData* data) {
+void GoogleFontsWindow_fontFamilyError(SushiFontWidget* fontWidget, GError *error, GoogleFontsFamilyLoadData* data) {
     g_file_delete(data->tempFileG, NULL, NULL);
     data->placeholderText->set_text("Error loading font");
 }
@@ -264,6 +264,7 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
 
         fwrite(buffer, bytes_read, 1, tempFile);
     }
+    fflush(tempFile);
     fclose(tempFile);
 
     g_task_return_boolean(task,true);

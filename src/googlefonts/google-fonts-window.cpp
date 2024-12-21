@@ -163,12 +163,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
         index += 1;
         //if (index == 105) break;
     }
-    Glib::signal_idle().connect(sigc::mem_fun(*this, &GoogleFontsWindow::queuedFontListScrollCallback));
-}
-
-bool GoogleFontsWindow::queuedFontListScrollCallback() {
-    fontListScroll();
-    return false;
+    this->signal_check_resize().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
 }
 
 void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFontsFamilyLoadData* data) {

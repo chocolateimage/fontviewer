@@ -249,6 +249,7 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
     loadData->placeholderText = listItem->placeholderText;
     g_signal_connect(fontWidget,"loaded", G_CALLBACK(GoogleFontsWindow_fontFamilyLoaded), loadData);
     
+    gtk_widget_set_has_window(GTK_WIDGET(fontWidget), false); // Needed else the preview will take over focus/hover
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     fontWidgetMM->show_all();
     listItem->buttonBox->add(*fontWidgetMM);

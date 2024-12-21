@@ -239,13 +239,18 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
         return;
     }
     if (!std::regex_search(css, match, sourceRegex)) {
+        std::cout << "Could not find font data in " << listItem->fontFamily->family << std::endl;
         g_task_return_boolean(task,false);
         return;
     }
 
     auto last = new std::string(match[match.size() - 1].str());
 
-    char tempname[] = "/tmp/fontviewer_font_XXXXXX";
+    std::string tempnameString = "/tmp/fontviewer_font_" + listItem->fontFamily->family + "_XXXXXX";
+
+    char *tempname = new char[tempnameString.size() + 1];
+    memcpy(tempname, tempnameString.c_str(), tempnameString.size() + 1);
+
     listItem->temppath = tempname;
     int tempFileDescriptor = mkstemp(tempname);
 
@@ -253,6 +258,8 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
     auto onlineFile = Gio::File::create_for_uri(*last);
 
     auto stream = onlineFile->read();
+
+    gsize total_size = 0;
 
     char buffer[4096];
     gsize bytes_read;
@@ -263,6 +270,10 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
         }
 
         fwrite(buffer, bytes_read, 1, tempFile);
+        total_size += bytes_read;
+    }
+    if (total_size < 1000) {
+        std::cout << "BROKEN: " << listItem->fontFamily->family << std::endl;
     }
     fflush(tempFile);
     fclose(tempFile);

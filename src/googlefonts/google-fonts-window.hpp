@@ -9,8 +9,12 @@ class GoogleFontsWindow: public Gtk::Window {
     public:
         GoogleFontsWindow();
 
+        bool queuedFontListScroll();
         void fontListScroll();
+        void searchUpdated();
 
+        Gtk::HeaderBar *headerBar;
+        Gtk::SearchEntry *searchEntry;
         Gtk::Stack *stack;
         Gtk::Spinner *spinner;
         Gtk::ScrolledWindow* scrolledWindow;

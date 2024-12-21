@@ -47,6 +47,17 @@ GoogleFontsWindow::GoogleFontsWindow() {
     this->resize(1000, 700);
     this->set_title("Google Fonts");
 
+    headerBar = new Gtk::HeaderBar();
+    headerBar->set_title("Google Fonts");
+    headerBar->set_show_close_button();
+    this->set_titlebar(*headerBar);
+
+    searchEntry = new Gtk::SearchEntry();
+    searchEntry->set_placeholder_text(_("Search..."));
+    searchEntry->signal_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::searchUpdated));
+    searchEntry->set_sensitive(false);
+    headerBar->pack_end(*searchEntry);
+
     stack = new Gtk::Stack();
     stack->set_transition_duration(200);
     stack->set_transition_type(Gtk::STACK_TRANSITION_TYPE_CROSSFADE);
@@ -213,6 +224,9 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         self->fontListItems->push_back(fontListItem);
     }
     self->signal_check_resize().connect(sigc::mem_fun(*self,&GoogleFontsWindow::fontListScroll));
+    
+    self->searchEntry->set_sensitive(true);
+    self->searchEntry->grab_focus();
 }
 
 void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFontsFamilyLoadData* data) {
@@ -328,4 +342,23 @@ void GoogleFontsWindow::fontListScroll() {
             g_task_run_in_thread(task,GoogleFontsWindow_loadFontFamilyInList);
         }
     }
+}
+
+bool GoogleFontsWindow::queuedFontListScroll() {
+    this->fontListScroll();
+    return false;
+}
+
+void GoogleFontsWindow::searchUpdated() {
+    std::string input = this->searchEntry->get_text().lowercase();
+    for (GoogleFontsFamilyListItem* listItem : *fontListItems) {
+        std::string family = listItem->fontFamily->displayName;
+        std::transform(family.begin(), family.end(), family.begin(), [](unsigned char c){ return std::tolower(c); });
+        if (family.find(input) != std::string::npos) {
+            listItem->button->show();
+        } else {
+            listItem->button->hide();
+        }
+    }
+    Glib::signal_idle().connect(sigc::mem_fun(*this, &GoogleFontsWindow::queuedFontListScroll));
 }

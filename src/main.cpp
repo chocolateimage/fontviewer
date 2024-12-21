@@ -16,7 +16,7 @@
 #include <freetype2/ft2build.h>
 #include "sushi-font-widget.h"
 #include "googlefonts/google-fonts-window.hpp"
-#include "constants.hpp"
+#include "pangram.hpp"
 
 struct FontStyleData;
 struct FontWidgetLoadData;
@@ -413,7 +413,7 @@ MainWindow::MainWindow(std::string* defaultFileName) {
         Gtk::Label* lblPreview = new Gtk::Label();
         fontListItem->preview = lblPreview;
         lblPreview->set_alignment(Gtk::ALIGN_START);
-        lblPreview->set_text(PANGRAM);
+        lblPreview->set_text(getPreviewTextForLanguage(""));
         btnBox->add(*lblPreview);
 
         btn->add(*btnBox);
@@ -584,7 +584,7 @@ void MainWindow::loadFont() {
         loadData->self = this;
         loadData->fontWidget = fontWidget;
         g_signal_connect(fontWidget,"loaded",G_CALLBACK(MainWindow_fontWidgetLoaded),loadData);
-        sushi_font_widget_set_text(fontWidget,(gchar*)PANGRAM);
+        sushi_font_widget_set_text(fontWidget,(gchar*)getPreviewTextForLanguage(""));
         
         Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
         btnBox->add(*fontWidgetMM);
@@ -694,7 +694,7 @@ void MainWindow::fontPreviewTextChanged() {
     }
     for (FontStyleListItem* fontStyleListItem : *fontStyleListItems) {
         if (currentPreviewText == NULL) {
-            sushi_font_widget_set_text(fontStyleListItem->fontWidget,(gchar*)PANGRAM);
+            sushi_font_widget_set_text(fontStyleListItem->fontWidget,(gchar*)getPreviewTextForLanguage(""));
         } else {
             sushi_font_widget_set_text(fontStyleListItem->fontWidget,(gchar*)currentPreviewText->c_str());
         }

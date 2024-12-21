@@ -8,6 +8,9 @@ class GoogleFontsFamily {
 public:
     std::string family;
     std::string displayName;
+    std::string language;
+
+    std::vector<std::string> subsets;
 
     int sortPopularity;
     int sortTrending;

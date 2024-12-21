@@ -9,7 +9,7 @@
 #include <regex>
 #include <glib/gi18n.h>
 #include <unistd.h>
-#include "../constants.hpp"
+#include "../pangram.hpp"
 #include "../sushi-font-widget.h"
 
 std::string loadStringFromURI(std::string uri) {
@@ -44,7 +44,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
     this->families = new std::vector<GoogleFontsFamily*>();
     this->fontListItems = new std::vector<GoogleFontsFamilyListItem*>();
 
-    this->resize(900, 500);
+    this->resize(1000, 700);
     this->set_title("Google Fonts");
 
     scrolledWindow = new Gtk::ScrolledWindow();
@@ -81,7 +81,30 @@ GoogleFontsWindow::GoogleFontsWindow() {
         }
         
         family->sortPopularity = json_object_get_int_member(fontMetadata, "popularity");
-        family->sortTrending = json_object_get_int_member(fontMetadata, "trending");
+        family->sortTrending = json_object_get_int_member(fontMetadata, "defaultSort");
+
+        family->language = json_object_get_string_member(fontMetadata, "primaryScript");
+        if (family->language == "") {
+            family->language = json_object_get_string_member(fontMetadata, "primaryLanguage");
+        }
+        if (family->language == "") {
+            family->language = "en_Latn";
+        }
+
+        JsonArray *subsetsArray = json_object_get_array_member(fontMetadata, "subsets");
+        int subsetsLength = json_array_get_length(subsetsArray);
+        for (int j = 0; j < subsetsLength; j++) {
+            std::string subset = json_array_get_string_element(subsetsArray, j);
+            family->subsets.push_back(subset);
+        }
+
+        if (
+            family->language == "en_Latn" &&
+            std::find(family->subsets.begin(), family->subsets.end(), "emoji") != family->subsets.end() &&
+            std::find(family->subsets.begin(), family->subsets.end(), "latin") == family->subsets.end()
+        ) {
+            family->language = "emoji";
+        }
 
         JsonObject *styleListObject = json_object_get_object_member(fontMetadata, "fonts");
         GList *stylesList = json_object_get_members(styleListObject);
@@ -102,7 +125,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
     }
 
     std::sort(this->families->begin(), this->families->end(), [](GoogleFontsFamily *a, GoogleFontsFamily *b) {
-        return a->sortPopularity < b->sortPopularity;
+        return a->sortTrending < b->sortTrending;
     });
 
     int index = 0;
@@ -122,6 +145,8 @@ GoogleFontsWindow::GoogleFontsWindow() {
         fontListItem->buttonBox = btnBox;
         btnBox->set_margin_left(8);
         btnBox->set_margin_right(8);
+        btnBox->set_margin_top(4);
+        btnBox->set_margin_bottom(4);
         btnBox->set_spacing(8);
 
         Gtk::HBox* btnHeaderBox = new Gtk::HBox();
@@ -148,7 +173,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
         auto fontDescription = context->get_font_description();
         fontDescription.set_size(26 * PANGO_SCALE);
         context->set_font_description(fontDescription);
-        lblPlaceholder->set_text("Loading...");
+        lblPlaceholder->set_text("");
         lblPlaceholder->set_alignment(Gtk::ALIGN_START);
         btnBox->add(*lblPlaceholder);
         fontListItem->placeholderText = lblPlaceholder;
@@ -173,7 +198,6 @@ void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFonts
 
 void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
     GoogleFontsFamilyListItem *listItem = (GoogleFontsFamilyListItem*)task_data;
-    std::cout << listItem->fontFamily->displayName << std::endl;
     std::regex sourceRegex(R"(src:\s*url\(([^)]+)\))");
     std::string css = loadStringFromURI("https://fonts.googleapis.com/css2?family="+listItem->fontFamily->family+"%3Awght%40400&directory=3&display=block");
     std::smatch match;
@@ -223,7 +247,7 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
     char* tempFileURIG = g_file_get_uri(tempFileG);
     SushiFontWidget* fontWidget = sushi_font_widget_new(tempFileURIG, 0);
 
-    sushi_font_widget_set_text(fontWidget, (gchar*)PANGRAM);
+    sushi_font_widget_set_text(fontWidget, (gchar*)getPreviewTextForLanguage(listItem->fontFamily->language));
     
     GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
     loadData->tempFileG = tempFileG;

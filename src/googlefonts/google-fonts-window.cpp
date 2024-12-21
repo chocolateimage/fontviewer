@@ -314,6 +314,7 @@ void GoogleFontsWindow::fontListScroll() {
     double scrollPosition = scrolledWindow->get_vadjustment()->get_value();
     for (GoogleFontsFamilyListItem* listItem : *fontListItems) {
         if (listItem->hasBeenViewed) continue;
+        if (!listItem->button->get_visible()) continue;
 
         Gtk::Allocation allocation = listItem->button->get_allocation();
         int y = allocation.get_y();

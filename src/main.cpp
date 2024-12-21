@@ -727,6 +727,7 @@ void MainWindow::fontListScroll() {
     double scrollPosition = fontsListScrollWidget->get_vadjustment()->get_value();
     for (FontListItem* listItem : *fontListItems) {
         if (listItem->hasBeenViewed) continue;
+        if (!listItem->button->get_visible()) continue;
         Gtk::Allocation allocation = listItem->button->get_allocation();
         int y = allocation.get_y();
         int windowHeight = this->get_height(); // good enough approximation

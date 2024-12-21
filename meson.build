@@ -4,7 +4,8 @@ executable(
     'fontviewer',
     [
         'src/main.cpp',
-        'src/google-fonts-window.cpp',
+        'src/googlefonts/family.cpp',
+        'src/googlefonts/google-fonts-window.cpp',
         'src/sushi-font-widget.c',
         'src/sushi-font-loader.c',
     ],

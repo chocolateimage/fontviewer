@@ -433,6 +433,7 @@ sushi_font_widget_size_request (GtkWidget *drawing_area,
     }
   }
 
+  pixmap_height = 40;
 
   if (min_height != NULL && *min_height == -1)
     *min_height = pixmap_height;

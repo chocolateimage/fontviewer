@@ -15,9 +15,8 @@
 #include FT_MULTIPLE_MASTERS_H
 #include <freetype2/ft2build.h>
 #include "sushi-font-widget.h"
-#include "src/google-fonts-window.hpp"
-
-const char* PANGRAM = "The five boxing wizards jump quickly.";
+#include "googlefonts/google-fonts-window.hpp"
+#include "constants.hpp"
 
 struct FontStyleData;
 struct FontWidgetLoadData;

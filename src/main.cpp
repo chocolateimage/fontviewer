@@ -50,6 +50,7 @@ struct FontListItem {
 struct FontStyleListItem {
     Gtk::Button* button;
     SushiFontWidget* fontWidget;
+    Gtk::Widget* fontWidgetMM;
 };
 struct FontStyleRow {
     std::string name;
@@ -528,6 +529,7 @@ void MainWindow::loadFont() {
     fontFamilyLabelWidget->set_text(familyData->family);
     for (FontStyleListItem* fontStyleListItem : *fontStyleListItems) {
         fontFamilyBoxWidget->remove(*fontStyleListItem->button);
+        delete fontStyleListItem->fontWidgetMM;
         delete fontStyleListItem->button;
         delete fontStyleListItem;
     }
@@ -590,6 +592,7 @@ void MainWindow::loadFont() {
         btnBox->add(*fontWidgetMM);
 
         fontStyleListItem->fontWidget = fontWidget;
+        fontStyleListItem->fontWidgetMM = fontWidgetMM;
 
         btn->add(*btnBox);
 

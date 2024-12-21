@@ -306,60 +306,34 @@ build_strings_for_face (SushiFontWidget *self)
   self->font_name = sushi_get_font_name (self->face, FALSE);
 }
 
-static gint *
-build_sizes_table (FT_Face face,
-		   gint *n_sizes,
-		   gint *alpha_size,
-                   gint *title_size)
+static gint get_size_from_face(FT_Face face)
 {
   gint *sizes = NULL;
   gint i;
+  gint n_sizes;
 
   /* work out what sizes to render */
   if (FT_IS_SCALABLE (face)) {
-    *n_sizes = 14;
-    sizes = g_new (gint, *n_sizes);
-    sizes[0] = 8;
-    sizes[1] = 10;
-    sizes[2] = 12;
-    sizes[3] = 18;
-    sizes[4] = 24;
-    sizes[5] = 36;
-    sizes[6] = 48;
-    sizes[7] = 72;
-    sizes[8] = 96;
-    sizes[9] = 120;
-    sizes[10] = 144;
-    sizes[11] = 168;
-    sizes[12] = 192;
-    sizes[13] = 216;
-
-    *alpha_size = 28;
-    *title_size = 48;
+    return 28;
   } else {
-    gint alpha_diff = G_MAXINT;
-    gint title_diff = G_MAXINT;
+    gint diff = G_MAXINT;
+    gint size = G_MAXINT;
 
     /* use fixed sizes */
-    *n_sizes = face->num_fixed_sizes;
-    sizes = g_new (gint, *n_sizes);
-    *alpha_size = 0;
+    n_sizes = face->num_fixed_sizes;
+    sizes = g_new (gint, n_sizes);
+    size = 0;
 
     for (i = 0; i < face->num_fixed_sizes; i++) {
       sizes[i] = face->available_sizes[i].height;
 
-      if ((gint) (abs (sizes[i] - 24)) < alpha_diff) {
-        alpha_diff = (gint) abs (sizes[i] - 24);
-        *alpha_size = sizes[i];
-      }
-      if ((gint) (abs (sizes[i] - 24)) < title_diff) {
-        title_diff = (gint) abs (sizes[i] - 24);
-        *title_size = sizes[i];
+      if ((gint) (abs (sizes[i] - 24)) < diff) {
+        diff = (gint) abs (sizes[i] - 24);
+        size = sizes[i];
       }
     }
+    return size;
   }
-
-  return sizes;
 }
 
 static void
@@ -374,7 +348,7 @@ sushi_font_widget_size_request (GtkWidget *drawing_area,
   cairo_font_extents_t font_extents;
   cairo_font_face_t *font;
   g_autofree gint *sizes = NULL;
-  gint n_sizes, alpha_size, title_size;
+  gint font_size;
   cairo_t *cr;
   cairo_surface_t *surface;
   FT_Face face = self->face;
@@ -404,7 +378,7 @@ sushi_font_widget_size_request (GtkWidget *drawing_area,
   state = gtk_style_context_get_state (context);
   gtk_style_context_get_padding (context, state, &padding);
 
-  sizes = build_sizes_table (face, &n_sizes, &alpha_size, &title_size);
+  font_size = get_size_from_face (face);
 
   /* calculate size of pixmap to use */
   pixmap_width = padding.left + padding.right;
@@ -417,11 +391,8 @@ sushi_font_widget_size_request (GtkWidget *drawing_area,
   else
     cairo_set_font_face (cr, NULL);
 
-  cairo_set_font_size (cr, title_size);
-  cairo_font_extents (cr, &font_extents);
-
   cairo_set_font_face (cr, font);
-  cairo_set_font_size (cr, alpha_size);
+  cairo_set_font_size (cr, font_size);
   cairo_font_extents (cr, &font_extents);
 
   if (self->lowercase_text != NULL) {
@@ -481,7 +452,7 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 {
   SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
   g_autofree gint *sizes = NULL;
-  gint n_sizes, alpha_size, title_size, pos_y = 0;
+  gint font_size, pos_y = 0;
   cairo_font_face_t *font = NULL;
   FT_Face face = self->face;
   GtkStyleContext *context;
@@ -503,9 +474,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   allocated_width = gtk_widget_get_allocated_width (drawing_area);
   allocated_height = gtk_widget_get_allocated_height (drawing_area);
 
-  //gtk_render_background (context, cr,
-   //                      0, 0, allocated_width, allocated_height);
-
   gtk_style_context_get_color (context, state, &color);
   gtk_style_context_get_padding (context, state, &padding);
 
@@ -523,15 +491,14 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 
   gdk_cairo_set_source_rgba (cr2, &color);
 
-  sizes = build_sizes_table (face, &n_sizes, &alpha_size, &title_size);
+  font_size = get_size_from_face (face);
 
   font = cairo_ft_font_face_create_for_ft_face (face, 0);
 
   /* draw text */
 
-  cairo_set_font_size (cr2, title_size);
   cairo_set_font_face (cr2, font);
-  cairo_set_font_size (cr2, alpha_size);
+  cairo_set_font_size (cr2, font_size);
 
 
   if (self->lowercase_text != NULL)

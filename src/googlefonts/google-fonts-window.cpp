@@ -124,6 +124,8 @@ GoogleFontsWindow::GoogleFontsWindow() {
         this->families->push_back(family);
     }
 
+    g_object_unref(parser);
+
     std::sort(this->families->begin(), this->families->end(), [](GoogleFontsFamily *a, GoogleFontsFamily *b) {
         return a->sortTrending < b->sortTrending;
     });

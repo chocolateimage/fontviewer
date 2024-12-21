@@ -1,5 +1,4 @@
 #include "pangram.hpp"
-#include <iostream>
 
 const char* getPreviewTextForLanguage(std::string language) {
     if (language == "Jpan") {

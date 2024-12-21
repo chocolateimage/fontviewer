@@ -128,8 +128,6 @@ GoogleFontsWindow::GoogleFontsWindow() {
         return a->sortTrending < b->sortTrending;
     });
 
-    int index = 0;
-
     for (auto i : *this->families) {
 
         GoogleFontsFamilyListItem* fontListItem = new GoogleFontsFamilyListItem();
@@ -184,9 +182,6 @@ GoogleFontsWindow::GoogleFontsWindow() {
 
         i->button = btn;
         fontListItems->push_back(fontListItem);
-
-        index += 1;
-        //if (index == 105) break;
     }
     this->signal_check_resize().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
 }

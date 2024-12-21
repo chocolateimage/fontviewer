@@ -22,7 +22,13 @@ const char* getPreviewTextForLanguage(std::string language) {
         return "Ang lahat ng tao'y isinilang na malaya at pantay-pantay sa karangalan at mga karapatan. Sila'y pinagkalooban ng katwiran at budhi at dapat magpalagayan ang isa't isa sa diwa ng pagkakapatiran.";
     } else if (language == "Beng") {
         return "শাসনতন্ত্রে বা আ‌ইনে প্রদত্ত মৌলিক অধিকার লঙ্ঘনের ক্ষেত্রে উপযুক্ত জাতীয় বিচার আদালতের কাছ থেকে কার্যকর প্রতিকার লাভের অধিকার প্রত্যেকের‌ই রয়েছে।";
-    } else if (language == "en_Latn") {
+    } else if (language == "Telu") {
+        return "ప్రతి వ్యక్తికిని అభిప్రాయస్వాతంత్ర్యమునకును, భావ ప్రకటన స్వాతంత్ర్యమునకును, హక్కు గలదు. పరుల జోక్యము లేక, స్వాభిప్రాయమును గలిగియుండుటకు స్వాతంత్ర్యమును, రాజ్యసీమానిరపేక్షముగా, నెట్టి మధ్యస్థ మార్గముననైన సమాచార, సంసూచనలను అన్వేషించుటకు, పొందుటకు, ఉపపాదించుటకు, స్వాతంత్ర్యమును ఈ హక్కులో నిమిదియున్నవి.";
+    } else if (language == "Laoo") {
+        return "ດ້ວຍເຫດວ່າ: ການຮັບຮູ້ກຽດຕິສັກອັນມີປະຈຳຢູ່ຕົວບຸກຄົນໃນວົງສະກຸນຂອງມະນຸດທຸກໆຄົນ ແລະ ການຮັບຮູ້ສິດສະເໝີພາບ ແລະ ສະເຖຍລະພາບຂອງບຸກຄົນເຫຼົ່ານັ້ນ ປະກອບເປັນຮາກຖານຂອງສິດເສລີພາບ ຍຸດຕິທຳ ແລະ ສັນຕິພາບຂອງໂລກ.";
+    } else if (language == "Taml") {
+        return "கருத்துச் சுதந்திரத்துக்கும் பேச்சுச் சுதந்திரத்துக்கும் எவருக்கும் உரிமையுண்டு. இவ்வுரிமையானது தலையீடின்றிக் கருத்துகளைக் கொண்டிருத்தற்கும், எவ்வூடகம் மூலமும் எல்லைகளைப் பொருட்படுத்தாமலும் தகவலையும் கருத்துக்களையும் நாடுவதற்கும் பெறுவதற்கும் பரப்புவதற்குமான சுதந்திரத்தையும் உள்ளடக்கும்.";
+    } else if (language == "en_Latn" || language == "Latn") {
         return "Everyone has the right to freedom of thought, conscience and religion; this right includes freedom to change his religion or belief, and freedom, either alone or in community with others and in public or private, to manifest his religion or belief in teaching, practice, worship and observance.";
     } else if (language == "es_Latn") {
         return "Considerando que la libertad, la justicia y la paz en el mundo tienen por base el reconocimiento de la dignidad intrínseca y de los derechos iguales e inalienables de todos los miembros de la familia humana";

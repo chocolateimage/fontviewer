@@ -66,7 +66,6 @@ GoogleFontsWindow::GoogleFontsWindow() {
     GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFamilies_callback,this);
     g_task_set_task_data(task,this,NULL);
     g_task_run_in_thread(task,GoogleFontsWindow_loadFamilies);
-    std::cout << "End" << std::endl;
 }
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
@@ -221,6 +220,11 @@ void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFonts
     delete data->placeholderText;
 }
 
+void GoogleFontsWindow_fontFamilyError(SushiFontWidget* fontWidget, GoogleFontsFamilyLoadData* data) {
+    g_file_delete(data->tempFileG, NULL, NULL);
+    data->placeholderText->set_text("Error loading font");
+}
+
 void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
     GoogleFontsFamilyListItem *listItem = (GoogleFontsFamilyListItem*)task_data;
     std::regex sourceRegex(R"(src:\s*url\(([^)]+)\))");
@@ -285,6 +289,7 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
     loadData->tempFileG = tempFileG;
     loadData->placeholderText = listItem->placeholderText;
     g_signal_connect(fontWidget,"loaded", G_CALLBACK(GoogleFontsWindow_fontFamilyLoaded), loadData);
+    g_signal_connect(fontWidget,"error", G_CALLBACK(GoogleFontsWindow_fontFamilyError), loadData);
     
     gtk_widget_set_has_window(GTK_WIDGET(fontWidget), false); // Needed else the preview will take over focus/hover
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));

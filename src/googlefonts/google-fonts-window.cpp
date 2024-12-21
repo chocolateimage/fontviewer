@@ -194,38 +194,45 @@ void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFonts
 void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
     GoogleFontsFamilyListItem *listItem = (GoogleFontsFamilyListItem*)task_data;
     std::regex sourceRegex(R"(src:\s*url\(([^)]+)\))");
-    std::string css = loadStringFromURI("https://fonts.googleapis.com/css2?family="+listItem->fontFamily->family+"%3Awght%40400&directory=3&display=block");
+    std::string css;
     std::smatch match;
-    if (std::regex_search(css, match, sourceRegex)) {
-        auto last = new std::string(match[match.size() - 1].str());
 
-        char tempname[] = "/tmp/fontviewer_font_XXXXXX";
-        listItem->temppath = tempname;
-        int tempFileDescriptor = mkstemp(tempname);
-
-        FILE *tempFile = fdopen(tempFileDescriptor, "wb");
-        auto onlineFile = Gio::File::create_for_uri(*last);
-
-        auto stream = onlineFile->read();
-
-        std::string response;
-
-        char buffer[4096];
-        gsize bytes_read;
-        while (true) {
-            bytes_read = stream->read(buffer, sizeof(buffer));
-            if (bytes_read == 0) {
-                break;
-            }
-
-            fwrite(buffer, bytes_read, 1, tempFile);
-        }
-        fclose(tempFile);
-
-        g_task_return_boolean(task,true);
-    } else {
+    try {
+        css = loadStringFromURI("https://fonts.googleapis.com/css2?family="+listItem->fontFamily->family+"%3Awght%40400&directory=3&display=block");
+    } catch (Gio::Error &error) {
+        std::cout << "An error has occured while loading the font " << listItem->fontFamily->family << ": " << error.what() << std::endl;
         g_task_return_boolean(task,false);
+        return;
     }
+    if (!std::regex_search(css, match, sourceRegex)) {
+        g_task_return_boolean(task,false);
+        return;
+    }
+
+    auto last = new std::string(match[match.size() - 1].str());
+
+    char tempname[] = "/tmp/fontviewer_font_XXXXXX";
+    listItem->temppath = tempname;
+    int tempFileDescriptor = mkstemp(tempname);
+
+    FILE *tempFile = fdopen(tempFileDescriptor, "wb");
+    auto onlineFile = Gio::File::create_for_uri(*last);
+
+    auto stream = onlineFile->read();
+
+    char buffer[4096];
+    gsize bytes_read;
+    while (true) {
+        bytes_read = stream->read(buffer, sizeof(buffer));
+        if (bytes_read == 0) {
+            break;
+        }
+
+        fwrite(buffer, bytes_read, 1, tempFile);
+    }
+    fclose(tempFile);
+
+    g_task_return_boolean(task,true);
 }
 
 

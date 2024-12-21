@@ -616,19 +616,9 @@ sushi_font_widget_finalize (GObject *object)
 
   g_free (self->uri);
 
-  if (self->face != NULL) {
-    FT_Done_Face (self->face);
-    self->face = NULL;
-  }
-
   g_free (self->font_name);
   g_free (self->sample_string);
   g_free (self->face_contents);
-
-  if (self->library != NULL) {
-    FT_Done_FreeType (self->library);
-    self->library = NULL;
-  }
 
   G_OBJECT_CLASS (sushi_font_widget_parent_class)->finalize (object);
 }

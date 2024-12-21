@@ -325,6 +325,7 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     headerBar->pack_end(*searchButton);
 
     googleFontsButton = new Gtk::Button();
+    googleFontsButton->set_tooltip_text("Google Fonts");
     googleFontsButton->set_image_from_icon_name("fontviewer-google-symbolic");
     googleFontsButton->signal_clicked().connect(sigc::mem_fun(*this,&MainWindow::openGoogleFonts));
     headerBar->pack_end(*googleFontsButton);
@@ -499,6 +500,7 @@ void MainWindow::loadFont() {
     backButton->show();
     searchBar->hide();
     searchButton->hide();
+    googleFontsButton->hide();
 
     bool isInstalled = false;
     for (FontFamilyData* fontFamilyData : *fontFamilies) {
@@ -709,6 +711,7 @@ void MainWindow::switchToFontList() {
     installButton->hide();
     searchBar->show_all();
     searchButton->show_all();
+    googleFontsButton->show_all();
     gtk_header_bar_set_custom_title(headerBar->gobj(),nullptr);
 }
 

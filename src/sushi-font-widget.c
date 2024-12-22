@@ -76,7 +76,6 @@ text_to_glyphs (cairo_t *cr,
   PangoAttribute *fallback_attr;
   PangoAttrList *attr_list;
   PangoContext *context;
-  PangoDirection base_dir;
   GList *items;
   GList *visual_items;
   FT_Face ft_face;
@@ -87,8 +86,6 @@ text_to_glyphs (cairo_t *cr,
 
   *num_glyphs = 0;
   *glyphs = NULL;
-
-  base_dir = PANGO_DIRECTION_NEUTRAL;//pango_find_base_dir (text, -1);
 
   cairo_scaled_font_t *cr_font = cairo_get_scaled_font (cr);
   ft_face = cairo_ft_scaled_font_lock_face (cr_font);
@@ -105,7 +102,7 @@ text_to_glyphs (cairo_t *cr,
   attr_list = pango_attr_list_new ();
   fallback_attr = pango_attr_fallback_new (FALSE);
   pango_attr_list_insert (attr_list, fallback_attr);
-  items = pango_itemize_with_base_dir (context, base_dir,
+  items = pango_itemize_with_base_dir (context, PANGO_DIRECTION_NEUTRAL,
                                        text, 0, strlen (text),
                                        attr_list, NULL);
   g_object_unref (context);
@@ -178,12 +175,9 @@ draw_string (SushiFontWidget *self,
   g_autofree cairo_glyph_t *glyphs = NULL;
   cairo_font_extents_t font_extents;
   cairo_text_extents_t extents;
-  GtkTextDirection text_dir;
   gint pos_x;
   gint num_glyphs;
   gint i;
-
-  text_dir = gtk_widget_get_direction (GTK_WIDGET (self));
 
   text_to_glyphs (cr, text, &glyphs, &num_glyphs);
 
@@ -192,12 +186,7 @@ draw_string (SushiFontWidget *self,
 
   if (pos_y != NULL)
     *pos_y += font_extents.ascent + extents.y_advance;
-  if (text_dir == GTK_TEXT_DIR_LTR)
-    pos_x = padding.left;
-  else {
-    pos_x = gtk_widget_get_allocated_width (GTK_WIDGET (self)) -
-      extents.x_advance - padding.right;
-  }
+  pos_x = padding.left;
 
   for (i = 0; i < num_glyphs; i++) {
     glyphs[i].x += pos_x;

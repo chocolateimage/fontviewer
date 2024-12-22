@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "../pangram.hpp"
 #include "../sushi-font-widget.h"
+#include "../utils.hpp"
 
 std::string loadStringFromURI(std::string uri) {
     auto file = Gio::File::create_for_uri(uri);
@@ -36,10 +37,9 @@ std::string loadStringFromURI(std::string uri) {
 GoogleFontsWindow::GoogleFontsWindow() {
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
-        ".window {background: #202124; color: #ffffff;}"
+        "notebook tabs {padding-left: 60px; padding-right: 60px;} "
         );
     this->get_style_context()->add_provider_for_screen(Gdk::Screen::get_default(),provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    this->get_style_context()->add_class("window");
 
     this->families = new std::vector<GoogleFontsFamily*>();
     this->fontListItems = new std::vector<GoogleFontsFamilyListItem*>();
@@ -50,6 +50,10 @@ GoogleFontsWindow::GoogleFontsWindow() {
     headerBar = new Gtk::HeaderBar();
     headerBar->set_title("Google Fonts");
     headerBar->set_show_close_button();
+    backButton = new Gtk::Button();
+    backButton->set_image_from_icon_name("go-previous-symbolic");
+    backButton->signal_clicked().connect(sigc::mem_fun(*this,&GoogleFontsWindow::switchToFontList));
+    headerBar->add(*backButton);
     this->set_titlebar(*headerBar);
 
     searchEntry = new Gtk::SearchEntry();
@@ -73,10 +77,38 @@ GoogleFontsWindow::GoogleFontsWindow() {
     scrolledWindow->add(*familyListBox);
     stack->add(*scrolledWindow, "list");
 
+    notebook = new Gtk::Notebook();
+
+    Gtk::ScrolledWindow *swSpecimen = new Gtk::ScrolledWindow();
+    boxSpecimen = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
+    boxSpecimen->set_margin_left(60);
+    boxSpecimen->set_margin_right(60);
+    boxSpecimen->set_margin_top(18);
+    
+    specimenTitle = new Gtk::Label();
+    specimenTitle->set_alignment(Gtk::ALIGN_START);
+    setFontSizeOfWidget(specimenTitle, 56);
+    boxSpecimen->add(*specimenTitle);
+
+    Gtk::Label *specimenStylesLabel = new Gtk::Label();
+    specimenStylesLabel->set_alignment(Gtk::ALIGN_START);
+    setFontSizeOfWidget(specimenTitle, 32);
+    specimenStylesLabel->set_text(_("Styles"));
+
+    specimenStyles = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
+    
+    swSpecimen->add(*boxSpecimen);
+    notebook->append_page(*swSpecimen, _("Specimen"));
+
+    stack->add(*notebook, "view");
+
     GCancellable* cancellable = g_cancellable_new();
     GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFamilies_callback,this);
     g_task_set_task_data(task,this,NULL);
     g_task_run_in_thread(task,GoogleFontsWindow_loadFamilies);
+
+    this->show_all();
+    backButton->hide();
 }
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
@@ -146,6 +178,7 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
             std::string styleName = std::string((const gchar*)j->data);
 
             GoogleFontsStyle *style = new GoogleFontsStyle();
+            style->family = family;
             if (styleName.at(styleName.length() - 1) == 'i') {
                 style->slant = 1;
                 styleName.pop_back();
@@ -182,6 +215,7 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         fontListItem->button = btn;
 
         btn->set_relief(Gtk::RELIEF_NONE);
+        btn->signal_clicked().connect(sigc::bind(sigc::mem_fun(*self, &GoogleFontsWindow::switchToFontFamily), fontListItem));
 
         Gtk::VBox* btnBox = new Gtk::VBox();
         fontListItem->buttonBox = btnBox;
@@ -235,43 +269,60 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
     self->searchEntry->grab_focus();
 }
 
-void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFontsFamilyLoadData* data) {
-    g_file_delete(data->tempFileG, NULL, NULL);
-    delete data->placeholderText;
+void GoogleFontsWindow::switchToFontList() {
+    this->backButton->hide();
+    this->stack->set_visible_child("list");
 }
 
-void GoogleFontsWindow_fontFamilyError(SushiFontWidget* fontWidget, GError *error, GoogleFontsFamilyLoadData* data) {
+void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListItem) {
+    this->backButton->show();
+    this->stack->set_visible_child("view");
+    this->notebook->set_current_page(0);
+
+    specimenTitle->set_text(fontListItem->fontFamily->displayName);
+}
+
+void GoogleFontsWindow_fontFamilyLoaded(SushiFontWidget* fontWidget, GoogleFontsFontWidgetLoadData* data) {
+    g_file_delete(data->tempFileG, NULL, NULL);
+    delete data->placeholderText;
+
+    delete data;
+}
+
+void GoogleFontsWindow_fontFamilyError(SushiFontWidget* fontWidget, GError *error, GoogleFontsFontWidgetLoadData* data) {
     g_file_delete(data->tempFileG, NULL, NULL);
     data->placeholderText->set_text("Error loading font");
+
+    delete data;
 }
 
 void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
-    GoogleFontsFamilyListItem *listItem = (GoogleFontsFamilyListItem*)task_data;
+    GoogleFontsFamilyLoadData *loadData = (GoogleFontsFamilyLoadData*)task_data;
     std::regex sourceRegex(R"(src:\s*url\(([^)]+)\))");
     std::string css;
     std::smatch match;
 
     try {
-        css = loadStringFromURI("https://fonts.googleapis.com/css2?family="+listItem->fontFamily->family+"%3Awght%40400&directory=3&display=block");
+        css = loadStringFromURI("https://fonts.googleapis.com/css2?family="+loadData->family+"%3Awght%40400&directory=3&display=block");
     } catch (Gio::Error &error) {
-        std::cout << "An error has occured while loading the font " << listItem->fontFamily->family << ": " << error.what() << std::endl;
+        std::cout << "An error has occured while loading the font " << loadData->family << ": " << error.what() << std::endl;
         g_task_return_boolean(task,false);
         return;
     }
     if (!std::regex_search(css, match, sourceRegex)) {
-        std::cout << "Could not find font data in " << listItem->fontFamily->family << std::endl;
+        std::cout << "Could not find font data in " << loadData->family << std::endl;
         g_task_return_boolean(task,false);
         return;
     }
 
     auto last = new std::string(match[match.size() - 1].str());
 
-    std::string tempnameString = "/tmp/fontviewer_font_" + listItem->fontFamily->family + "_XXXXXX";
+    std::string tempnameString = "/tmp/fontviewer_font_" + loadData->family + "_XXXXXX";
 
     char *tempname = new char[tempnameString.size() + 1];
     memcpy(tempname, tempnameString.c_str(), tempnameString.size() + 1);
 
-    listItem->temppath = tempname;
+    loadData->temppath = tempname;
     int tempFileDescriptor = mkstemp(tempname);
 
     FILE *tempFile = fdopen(tempFileDescriptor, "wb");
@@ -293,7 +344,7 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
         total_size += bytes_read;
     }
     if (total_size < 1000) {
-        std::cout << "BROKEN: " << listItem->fontFamily->family << std::endl;
+        std::cout << "BROKEN: " << loadData->family << std::endl;
     }
     fflush(tempFile);
     fclose(tempFile);
@@ -311,13 +362,13 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
         return;
     }
 
-    GFile* tempFileG = g_file_new_for_path(listItem->temppath);
+    GFile* tempFileG = g_file_new_for_path(listItem->loadData->temppath);
     char* tempFileURIG = g_file_get_uri(tempFileG);
     SushiFontWidget* fontWidget = sushi_font_widget_new(tempFileURIG, 0);
 
     sushi_font_widget_set_text(fontWidget, (gchar*)getPreviewTextForLanguage(listItem->fontFamily->language));
     
-    GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
+    GoogleFontsFontWidgetLoadData *loadData = new GoogleFontsFontWidgetLoadData();
     loadData->tempFileG = tempFileG;
     loadData->placeholderText = listItem->placeholderText;
     g_signal_connect(fontWidget,"loaded", G_CALLBACK(GoogleFontsWindow_fontFamilyLoaded), loadData);
@@ -327,6 +378,9 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     fontWidgetMM->show_all();
     listItem->buttonBox->add(*fontWidgetMM);
+
+    listItem->loadData = NULL;
+    delete listItem->loadData;
 }
 
 
@@ -342,9 +396,12 @@ void GoogleFontsWindow::fontListScroll() {
         if (y > scrollPosition - 256 && y < scrollPosition + windowHeight + 256) {
             listItem->hasBeenViewed = true;
 
+            GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
+            loadData->family = listItem->fontFamily->family;
+            listItem->loadData = loadData;
             GCancellable* cancellable = g_cancellable_new();
             GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFontFamilyInList_callback,listItem);
-            g_task_set_task_data(task,listItem,NULL);
+            g_task_set_task_data(task,loadData,NULL);
             g_task_run_in_thread(task,GoogleFontsWindow_loadFontFamilyInList);
         }
     }

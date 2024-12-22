@@ -854,7 +854,6 @@ void MainWindow::openGoogleFonts() {
     }
 
     googleFontsWindow = new GoogleFontsWindow();
-    googleFontsWindow->show_all();
 }
 
 MainWindow::~MainWindow() {

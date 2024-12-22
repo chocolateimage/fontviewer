@@ -8,6 +8,7 @@ executable(
         'src/googlefonts/google-fonts-window.cpp',
         'src/sushi-font-widget.c',
         'src/sushi-font-loader.c',
+        'src/utils.cpp',
     ],
     dependencies: [
         dependency('fontconfig'),

@@ -22,6 +22,8 @@ public:
 
 class GoogleFontsStyle {
 public:
+    GoogleFontsFamily *family;
+
     int weight;
     int slant;
 };

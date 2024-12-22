@@ -4,6 +4,7 @@
 #include "family.hpp"
 
 struct GoogleFontsFamilyListItem;
+struct GoogleFontsFamilyLoadData;
 
 class GoogleFontsWindow: public Gtk::Window {
     public:
@@ -12,13 +13,23 @@ class GoogleFontsWindow: public Gtk::Window {
         bool queuedFontListScroll();
         void fontListScroll();
         void searchUpdated();
+        void switchToFontList();
+        void switchToFontFamily(GoogleFontsFamilyListItem* fontListItem);
 
         Gtk::HeaderBar *headerBar;
+        Gtk::Button *backButton;
         Gtk::SearchEntry *searchEntry;
         Gtk::Stack *stack;
+
         Gtk::Spinner *spinner;
+
         Gtk::ScrolledWindow* scrolledWindow;
         Gtk::Box* familyListBox;
+
+        Gtk::Notebook *notebook;
+        Gtk::Box *boxSpecimen;
+        Gtk::Label *specimenTitle;
+        Gtk::Box *specimenStyles;
 
         std::vector<GoogleFontsFamilyListItem*>* fontListItems;
         std::vector<GoogleFontsFamily*>* families;
@@ -32,11 +43,17 @@ struct GoogleFontsFamilyListItem {
     Gtk::Box* buttonBox;
     Gtk::Label* placeholderText;
     GoogleFontsFamily* fontFamily;
-    const char *temppath;
     bool hasBeenViewed;
+
+    GoogleFontsFamilyLoadData* loadData;
 };
 
 struct GoogleFontsFamilyLoadData {
+    std::string family;
+    const char *temppath;
+};
+
+struct GoogleFontsFontWidgetLoadData {
     GFile* tempFileG;
     Gtk::Label* placeholderText;
 };

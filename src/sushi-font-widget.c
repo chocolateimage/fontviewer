@@ -161,18 +161,6 @@ text_to_glyphs (cairo_t *cr,
   cairo_ft_scaled_font_unlock_face (cr_font);
 }
 
-static void
-text_extents (cairo_t *cr,
-              const char *text,
-              cairo_text_extents_t *extents)
-{
-  g_autofree cairo_glyph_t *glyphs = NULL;
-  gint num_glyphs;
-
-  text_to_glyphs (cr, text, &glyphs, &num_glyphs);
-  cairo_glyph_extents (cr, glyphs, num_glyphs, extents);
-}
-
 /* adapted from gnome-utils:font-viewer/font-view.c
  *
  * Copyright (C) 2002-2003  James Henstridge <james@daa.com.au>
@@ -218,24 +206,6 @@ draw_string (SushiFontWidget *self,
 
   cairo_move_to (cr, pos_x, *pos_y);
   cairo_show_glyphs (cr, glyphs, num_glyphs);
-}
-
-static gboolean
-check_font_contain_text (FT_Face face,
-                         const gchar *text)
-{
-  g_autofree gunichar *string = NULL;
-  glong len, idx;
-
-  string = g_utf8_to_ucs4_fast (text, -1, &len);
-  for (idx = 0; idx < len; idx++) {
-    gunichar c = string[idx];
-
-    if (!FT_Get_Char_Index (face, c))
-      return FALSE;
-  }
-
-  return TRUE;
 }
 
 static gchar *
@@ -328,99 +298,12 @@ static gint get_size_from_face(FT_Face face)
 }
 
 static void
-sushi_font_widget_size_request (GtkWidget *drawing_area,
-                                gint *width,
-                                gint *height,
-                                gint *min_height)
-{
-  SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
-  gint pixmap_width, pixmap_height;
-  cairo_text_extents_t extents;
-  cairo_font_extents_t font_extents;
-  cairo_font_face_t *font;
-  g_autofree gint *sizes = NULL;
-  gint font_size;
-  cairo_t *cr;
-  cairo_surface_t *surface;
-  FT_Face face = self->face;
-  GtkStyleContext *context;
-  GtkStateFlags state;
-  GtkBorder padding;
-
-  if (face == NULL) {
-    if (width != NULL)
-      *width = 1;
-    if (height != NULL)
-      *height = 1;
-    if (min_height != NULL)
-      *min_height = 1;
-
-    return;
-  }
-
-  if (min_height != NULL)
-    *min_height = -1;
-
-  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                        SURFACE_SIZE, SURFACE_SIZE);
-  cr = cairo_create (surface);
-  context = gtk_widget_get_style_context (drawing_area);
-
-  state = gtk_style_context_get_state (context);
-  gtk_style_context_get_padding (context, state, &padding);
-
-  font_size = get_size_from_face (face);
-
-  /* calculate size of pixmap to use */
-  pixmap_width = padding.left + padding.right;
-  pixmap_height = padding.top + padding.bottom;
-
-  font = cairo_ft_font_face_create_for_ft_face (face, 0);
-
-  if (check_font_contain_text (face, self->font_name))
-    cairo_set_font_face (cr, font);
-  else
-    cairo_set_font_face (cr, NULL);
-
-  cairo_set_font_face (cr, font);
-  cairo_set_font_size (cr, font_size);
-  cairo_font_extents (cr, &font_extents);
-
-  if (self->lowercase_text != NULL) {
-    if (check_font_contain_text(face,self->lowercase_text)) {
-      text_extents (cr, self->lowercase_text, &extents);
-      pixmap_height += font_extents.ascent + font_extents.descent + extents.y_advance;
-      pixmap_width = MAX (pixmap_width, extents.width + padding.left + padding.right);
-    }
-  }
-
-  pixmap_height = 40;
-
-  if (min_height != NULL && *min_height == -1)
-    *min_height = pixmap_height;
-
-  if (width != NULL)
-    *width = pixmap_width;
-
-  if (height != NULL)
-    *height = pixmap_height;
-
-  cairo_destroy (cr);
-  cairo_font_face_destroy (font);
-  cairo_surface_destroy (surface);
-}
-
-static void
 sushi_font_widget_get_preferred_width (GtkWidget *drawing_area,
                                        gint *minimum_width,
                                        gint *natural_width)
 {
-  gint width;
-
-  sushi_font_widget_size_request (drawing_area, &width, NULL, NULL);
-
   *minimum_width = 0;
-  *natural_width = width;
+  *natural_width = 0;
 }
 
 static void
@@ -428,12 +311,8 @@ sushi_font_widget_get_preferred_height (GtkWidget *drawing_area,
                                         gint *minimum_height,
                                         gint *natural_height)
 {
-  gint height, min_height;
-
-  sushi_font_widget_size_request (drawing_area, NULL, &height, &min_height);
-
-  *minimum_height = min_height;
-  *natural_height = height;
+  *minimum_height = 40;
+  *natural_height = 40;
 }
 
 static gboolean

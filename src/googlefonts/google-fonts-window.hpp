@@ -2,8 +2,10 @@
 #include <gtkmm.h>
 #include <vector>
 #include "family.hpp"
+#include "../sushi-font-widget.h"
 
 struct GoogleFontsFamilyListItem;
+struct GoogleFontsStyleListItem;
 struct GoogleFontsFamilyLoadData;
 
 class GoogleFontsWindow: public Gtk::Window {
@@ -15,6 +17,8 @@ class GoogleFontsWindow: public Gtk::Window {
         void searchUpdated();
         void switchToFontList();
         void switchToFontFamily(GoogleFontsFamilyListItem* fontListItem);
+
+        std::string *getStylePreviewText();
 
         Gtk::HeaderBar *headerBar;
         Gtk::Button *backButton;
@@ -31,12 +35,17 @@ class GoogleFontsWindow: public Gtk::Window {
         Gtk::Label *specimenTitle;
         Gtk::Box *specimenStyles;
 
+        std::string *stylePreviewText;
+
         std::vector<GoogleFontsFamilyListItem*>* fontListItems;
+        std::vector<GoogleFontsStyleListItem*>* styleListItems;
         std::vector<GoogleFontsFamily*>* families;
 };
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
 void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResult *res, gpointer user_data);
+void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
+void GoogleFontsWindow_loadFontFamilyInList_callback_style(GObject *source_object, GAsyncResult *res, gpointer user_data);
 
 struct GoogleFontsFamilyListItem {
     Gtk::Button* button;
@@ -44,6 +53,16 @@ struct GoogleFontsFamilyListItem {
     Gtk::Label* placeholderText;
     GoogleFontsFamily* fontFamily;
     bool hasBeenViewed;
+
+    GoogleFontsFamilyLoadData* loadData;
+};
+
+struct GoogleFontsStyleListItem {
+    GoogleFontsWindow* googleFontsWindow;
+    Gtk::Box* box;
+    Gtk::Label* placeholderText;
+    GoogleFontsStyle* style;
+    SushiFontWidget* fontWidget;
 
     GoogleFontsFamilyLoadData* loadData;
 };
@@ -56,4 +75,5 @@ struct GoogleFontsFamilyLoadData {
 struct GoogleFontsFontWidgetLoadData {
     GFile* tempFileG;
     Gtk::Label* placeholderText;
+    SushiFontWidget* fontWidget;
 };

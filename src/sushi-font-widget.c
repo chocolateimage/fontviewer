@@ -28,7 +28,6 @@
 #include "sushi-font-loader.h"
 
 #include <hb-glib.h>
-#include <math.h>
 
 enum {
   PROP_URI = 1,
@@ -67,11 +66,6 @@ static guint signals[NUM_SIGNALS] = { 0, };
 G_DEFINE_TYPE (SushiFontWidget, sushi_font_widget, GTK_TYPE_DRAWING_AREA)
 
 #define SURFACE_SIZE 4
-//#define SECTION_SPACING 16
-#define SECTION_SPACING 0
-//#define LINE_SPACING 2
-#define LINE_SPACING 0
-
 
 static void
 text_to_glyphs (cairo_t *cr,
@@ -209,8 +203,7 @@ draw_string (SushiFontWidget *self,
   cairo_glyph_extents (cr, glyphs, num_glyphs, &extents);
 
   if (pos_y != NULL)
-    *pos_y += font_extents.ascent + 0 +
-      extents.y_advance + LINE_SPACING / 2;
+    *pos_y += font_extents.ascent + extents.y_advance;
   if (text_dir == GTK_TEXT_DIR_LTR)
     pos_x = padding.left;
   else {
@@ -225,8 +218,6 @@ draw_string (SushiFontWidget *self,
 
   cairo_move_to (cr, pos_x, *pos_y);
   cairo_show_glyphs (cr, glyphs, num_glyphs);
-
-  *pos_y += LINE_SPACING / 2;
 }
 
 static gboolean
@@ -398,8 +389,7 @@ sushi_font_widget_size_request (GtkWidget *drawing_area,
   if (self->lowercase_text != NULL) {
     if (check_font_contain_text(face,self->lowercase_text)) {
       text_extents (cr, self->lowercase_text, &extents);
-      pixmap_height += font_extents.ascent + font_extents.descent + 
-        extents.y_advance + LINE_SPACING;
+      pixmap_height += font_extents.ascent + font_extents.descent + extents.y_advance;
       pixmap_width = MAX (pixmap_width, extents.width + padding.left + padding.right);
     }
   }

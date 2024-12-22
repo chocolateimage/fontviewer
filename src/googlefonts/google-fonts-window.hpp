@@ -64,6 +64,7 @@ struct GoogleFontsStyleListItem {
     GoogleFontsStyle* style;
     SushiFontWidget* fontWidget;
 
+    GCancellable* loadCancellable;
     GoogleFontsFamilyLoadData* loadData;
 };
 

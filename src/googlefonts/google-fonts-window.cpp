@@ -290,6 +290,9 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
     specimenTitle->set_text(fontListItem->fontFamily->displayName);
 
     if (this->styleListItems != NULL) {
+        for (auto styleListItem : *this->styleListItems) {
+            g_cancellable_cancel(styleListItem->loadCancellable);
+        }
         this->styleListItems->clear();
         delete this->styleListItems;
     }
@@ -357,9 +360,12 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         styleListItem->loadData = loadData;
 
         GCancellable* cancellable = g_cancellable_new();
+        styleListItem->loadCancellable = cancellable;
         GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFontFamilyInList_callback_style, styleListItem);
         g_task_set_task_data(task,loadData,NULL);
         g_task_run_in_thread(task,GoogleFontsWindow_loadFontFamilyInList);
+
+        this->styleListItems->push_back(styleListItem);
     }
     Gtk::Separator *separator = new Gtk::Separator();
     separator->show();

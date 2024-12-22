@@ -16,6 +16,7 @@ executable(
         dependency('cairomm-1.0'),
         dependency('freetype2'),
         dependency('json-glib-1.0'),
+        dependency('libcurl'),
     ],
     install: true
 )

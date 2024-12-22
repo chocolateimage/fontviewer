@@ -97,3 +97,8 @@ const char* slant_to_name(int slant)
 
     return "";
 }
+
+size_t curlWriteCallbackString(void* ptr, size_t size, size_t nmemb, std::string *data) {
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}

@@ -40,6 +40,8 @@ class GoogleFontsWindow: public Gtk::Window {
         std::vector<GoogleFontsFamilyListItem*>* fontListItems;
         std::vector<GoogleFontsStyleListItem*>* styleListItems;
         std::vector<GoogleFontsFamily*>* families;
+    private:
+        std::string *_newSampleText;
 };
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);

@@ -7,8 +7,10 @@
 #include <vector>
 #include <algorithm>
 #include <regex>
+#include <thread>
 #include <glib/gi18n.h>
 #include <unistd.h>
+#include <curl/curl.h>
 #include "../pangram.hpp"
 #include "../sushi-font-widget.h"
 #include "../utils.hpp"
@@ -34,6 +36,25 @@ std::string loadStringFromURI(std::string uri) {
     return response;
 }
 
+std::string sendPOSTRequest(std::string uri, std::string json) {
+    std::string response;
+
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, uri.c_str());
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json+protobuf");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallbackString);
+    curl_easy_perform(curl);
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+
+    return response;
+}
+
 GoogleFontsWindow::GoogleFontsWindow() {
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
@@ -44,7 +65,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
     this->families = new std::vector<GoogleFontsFamily*>();
     this->fontListItems = new std::vector<GoogleFontsFamilyListItem*>();
     this->styleListItems = NULL;
-    this->stylePreviewText = new std::string("Whereas recognition of the inherent dignity");
+    this->stylePreviewText = new std::string("");
 
     this->resize(1000, 700);
     this->set_title("Google Fonts");
@@ -301,6 +322,46 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
     for (auto child : this->specimenStyles->get_children()) {
         delete child;
     }
+
+    Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
+    this->stylePreviewText = new std::string("");
+    dispatcher->connect([this, dispatcher]() {
+        if (this->stylePreviewText != NULL) {
+            delete this->stylePreviewText;
+        }
+        this->stylePreviewText = this->_newSampleText;
+        for (auto style : *this->styleListItems) {
+            if (style->fontWidget != NULL) {
+                sushi_font_widget_set_text(style->fontWidget, this->stylePreviewText->c_str());
+                gtk_widget_queue_draw(GTK_WIDGET(style->fontWidget));
+            }
+        }
+        this->_newSampleText = NULL;
+        delete dispatcher;
+    });
+    std::thread([this, fontListItem, dispatcher]() {
+        JsonArray *array = json_array_new();
+        JsonArray *array2 = json_array_new();
+        json_array_add_string_element(array2, fontListItem->fontFamily->family.c_str());
+        json_array_add_array_element(array, array2);
+        JsonNode *root = json_node_new(JSON_NODE_ARRAY);
+        json_node_set_array(root, array);
+        gchar *json = json_to_string(root, false);
+        std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/SampleText", json);
+        JsonParser *parser = json_parser_new();
+        json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
+        JsonNode *parseRoot = json_parser_get_root(parser);
+        const gchar *sampleText = json_array_get_string_element(
+            json_array_get_array_element(
+                json_node_get_array(parseRoot), 
+                2
+            ), 
+            2
+        );
+        this->_newSampleText = new std::string(sampleText);
+        dispatcher->emit();
+        g_object_unref(parser);
+    }).detach();
 
     for (auto style : fontListItem->fontFamily->styles) {
         GoogleFontsStyleListItem *styleListItem = new GoogleFontsStyleListItem();

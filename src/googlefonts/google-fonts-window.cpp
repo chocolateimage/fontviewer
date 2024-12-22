@@ -508,6 +508,10 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
     fflush(tempFile);
     fclose(tempFile);
 
+    if (g_cancellable_is_cancelled(cancellable)) {
+        remove(tempname);
+    }
+
     g_task_return_boolean(task,true);
 }
 

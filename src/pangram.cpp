@@ -55,6 +55,12 @@ const char* getPreviewTextForLanguage(std::string language) {
         return "Það ber að viðurkenna, að hver maður sé jafnborinn til virðingar og réttinda, er eigi verði af honum tekin, og er þetta undirstaða frelsis, réttlætis og friðar i heiminum.";
     } else if (language == "emoji") {
         return "🥰💀✌︎🌴🐢🐐🍄⚽🍻👑📸😬👀🚨🏡🐦‍🔥🍋‍🟩🍄‍🟫🙂‍↕︎🕊︎🏆😻🌟🧿🍀🎨🍜";
+    } else if (language == "symbols") {
+        return "⛾⛿☯☸ ⛩⛰⛱⛴⛷⛸⛹ ♸⚥☊☍☓☤ 🄰🄱🆈🆉 ⚖♇♪♬";
+    } else if (language == "symbols2") {
+        return "🌍✄✎ 🏔🏕🏌🏍🎭🎮 🯅🯆🯇🯉 🡢🡭🡱🡼 🯱🯲🯳🯴🯵🯶 🂮🂱🂲🂳";
+    } else if (language == "music") {
+        return "𝄆 𝄙𝆏 𝅗𝅘𝅥𝅘𝅥𝅯𝅘𝅥𝅱 𝄞𝄟𝄢 𝄾𝄿𝄎 𝄴 𝄶𝅁 𝄭𝄰 𝇛𝇜 𝄊 𝄇 𝀸𝀹𝀺𝀻𝀼𝀽 𝈀𝈁𝈂𝈃𝈄𝈅";
     } else {
         return "The five boxing wizards jump quickly.";
     }

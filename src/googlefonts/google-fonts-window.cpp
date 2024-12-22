@@ -132,6 +132,12 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
             std::find(family->subsets.begin(), family->subsets.end(), "latin") == family->subsets.end()
         ) {
             family->language = "emoji";
+        } else if (family->family == "Noto Sans Symbols") {
+            family->language = "symbols";
+        } else if (family->family == "Noto Sans Symbols 2") {
+            family->language = "symbols2";
+        } else if (family->family == "Noto Music") {
+            family->language = "music";
         }
 
         JsonObject *styleListObject = json_object_get_object_member(fontMetadata, "fonts");

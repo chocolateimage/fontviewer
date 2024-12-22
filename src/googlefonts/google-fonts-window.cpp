@@ -66,6 +66,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
     this->fontListItems = new std::vector<GoogleFontsFamilyListItem*>();
     this->styleListItems = NULL;
     this->stylePreviewText = new std::string("");
+    this->userOverridenStylePreviewText = NULL;
 
     this->resize(1000, 700);
     this->set_title("Google Fonts");
@@ -119,6 +120,11 @@ GoogleFontsWindow::GoogleFontsWindow() {
     setFontSizeOfWidget(specimenStylesLabel, 18);
     specimenStylesLabel->set_text(_("Styles"));
     boxSpecimen->add(*specimenStylesLabel);
+
+    specimenStylesCustomPreviewEntry = new Gtk::Entry();
+    specimenStylesCustomPreviewEntry->set_placeholder_text(_("Enter text to preview in the font"));
+    specimenStylesCustomPreviewEntry->signal_changed().connect(sigc::mem_fun(*this, &GoogleFontsWindow::userOverridenStylePreviewTextChanged));
+    boxSpecimen->add(*specimenStylesCustomPreviewEntry);
 
     specimenStyles = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
     boxSpecimen->add(*specimenStyles);
@@ -330,12 +336,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
             delete this->stylePreviewText;
         }
         this->stylePreviewText = this->_newSampleText;
-        for (auto style : *this->styleListItems) {
-            if (style->fontWidget != NULL) {
-                sushi_font_widget_set_text(style->fontWidget, this->stylePreviewText->c_str());
-                gtk_widget_queue_draw(GTK_WIDGET(style->fontWidget));
-            }
-        }
+        this->updateStylePreview();
         this->_newSampleText = NULL;
         delete dispatcher;
     });
@@ -621,5 +622,29 @@ void GoogleFontsWindow::searchUpdated() {
 }
 
 std::string *GoogleFontsWindow::getStylePreviewText() {
+    if (this->userOverridenStylePreviewText != NULL) {
+        return this->userOverridenStylePreviewText;
+    }
     return this->stylePreviewText;
+}
+
+void GoogleFontsWindow::updateStylePreview() {
+    for (auto style : *this->styleListItems) {
+        if (style->fontWidget != NULL) {
+            sushi_font_widget_set_text(style->fontWidget, getStylePreviewText()->c_str());
+            gtk_widget_queue_draw(GTK_WIDGET(style->fontWidget));
+        }
+    }
+}
+
+void GoogleFontsWindow::userOverridenStylePreviewTextChanged() {
+    delete this->userOverridenStylePreviewText;
+    std::string text = specimenStylesCustomPreviewEntry->get_text();
+    if (text.empty()) {
+        this->userOverridenStylePreviewText = NULL;
+    } else {
+        this->userOverridenStylePreviewText = new std::string(text);
+    }
+
+    this->updateStylePreview();
 }

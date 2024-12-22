@@ -17,6 +17,8 @@ class GoogleFontsWindow: public Gtk::Window {
         void searchUpdated();
         void switchToFontList();
         void switchToFontFamily(GoogleFontsFamilyListItem* fontListItem);
+        void updateStylePreview();
+        void userOverridenStylePreviewTextChanged();
 
         std::string *getStylePreviewText();
 
@@ -33,9 +35,11 @@ class GoogleFontsWindow: public Gtk::Window {
         Gtk::Notebook *notebook;
         Gtk::Box *boxSpecimen;
         Gtk::Label *specimenTitle;
+        Gtk::Entry *specimenStylesCustomPreviewEntry;
         Gtk::Box *specimenStyles;
 
         std::string *stylePreviewText;
+        std::string *userOverridenStylePreviewText;
 
         std::vector<GoogleFontsFamilyListItem*>* fontListItems;
         std::vector<GoogleFontsStyleListItem*>* styleListItems;

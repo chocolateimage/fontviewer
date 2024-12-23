@@ -252,6 +252,9 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   if (face == NULL)
     return FALSE;
 
+  if (self->text == NULL)
+    return FALSE;
+
   context = gtk_widget_get_style_context (drawing_area);
   if (!gtk_style_context_has_class(context,"sushi-font-widget")) {
     gtk_style_context_add_class(context,"sushi-font-widget");
@@ -282,17 +285,14 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 
   /* draw text */
 
-  cairo_set_font_face (cr2, font);
-  cairo_set_font_size (cr2, font_size);
+  cairo_set_font_face(cr2, font);
+  cairo_set_font_size(cr2, font_size);
 
-  cairo_set_source_rgba(cr2,0,0,0,0.01);
-  cairo_rectangle(cr2,0,0,1, 1);
-  cairo_fill(cr2);
+  cairo_surface_mark_dirty(cr2surface);
 
-  gdk_cairo_set_source_rgba (cr2, &color);
+  gdk_cairo_set_source_rgba(cr2, &color);
 
-  if (self->text != NULL)
-    draw_string (self, cr2, padding, self->text);
+  draw_string(self, cr2, padding, self->text);
 
   cairo_pattern_t* linear_gradient = cairo_pattern_create_linear(0,0,allocated_width,allocated_height);
   cairo_pattern_add_color_stop_rgba(linear_gradient,0,1,1,1,1);

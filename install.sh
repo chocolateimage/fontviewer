@@ -19,4 +19,7 @@ cd builddir
 echo "Building & installing, you may need to press \"y\" and enter to allow it to install"
 meson install
 
+cd
+rm -rf /tmp/fontviewerinstall
+
 echo "Done! You can find \"Fonts\" in your application launcher"

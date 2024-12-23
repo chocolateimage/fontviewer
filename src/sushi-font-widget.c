@@ -358,6 +358,9 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_set_font_face (cr2, font);
   cairo_set_font_size (cr2, font_size);
 
+  cairo_set_source_rgba(cr2,0,0,0,0.01);
+  cairo_rectangle(cr2,0,0,1,1);
+  cairo_fill(cr2);
 
   if (self->lowercase_text != NULL)
     draw_string (self, cr2, padding, self->lowercase_text, &pos_y);

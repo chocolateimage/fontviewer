@@ -9,15 +9,12 @@ View and install fonts on a Linux system
 
 ## Installation
 
-To add the PPA (required for the package), run the following commands:
-```bash
-sudo add-apt-repository ppa:chocolateimage/ppa
-sudo apt update
-```
 To install the package, run:
 ```bash
-sudo apt install fontviewer
+bash <(curl -s https://github.com/chocolateimage/fontviewer/blob/google-fonts/install.sh)
 ```
+
+I no longer want to do PPA for now because of how shitty Launchpad is.
 
 
 ## Building/installing from source

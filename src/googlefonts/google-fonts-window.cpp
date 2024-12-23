@@ -56,8 +56,8 @@ std::string sendPOSTRequest(std::string uri, std::string json) {
     return response;
 }
 
-GoogleFontsWindow::GoogleFontsWindow(MainWindow *mainWindow) {
-    this->mainWindow = mainWindow;
+GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
+    this->fontFamilies = fonts;
 
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
@@ -267,7 +267,7 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
         g_list_free(stylesList);
 
         family->isInstalled = false;
-        for (FontFamilyData* fontFamily : *self->mainWindow->fontFamilies) {
+        for (FontFamilyData* fontFamily : *self->fontFamilies) {
             if (fontFamily->family == family->family) {
                 family->isInstalled = true;
                 break;
@@ -838,7 +838,7 @@ void GoogleFontsWindow::installButtonClick() {
     if (listItem->fontFamily->isInstalled) {
         this->specimenInstallButton->set_label(_("Uninstalling..."));
         std::vector<std::string> paths;
-        for (FontFamilyData* fontFamily : *this->mainWindow->fontFamilies) {
+        for (FontFamilyData* fontFamily : *this->fontFamilies) {
             if (fontFamily->family == listItem->fontFamily->family) {
                 for (auto path : *fontFamily->paths) {
                     paths.push_back(path);

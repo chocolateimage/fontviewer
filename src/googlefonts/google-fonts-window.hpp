@@ -2,6 +2,7 @@
 #include <gtkmm.h>
 #include <vector>
 #include "family.hpp"
+#include "../font.hpp"
 #include "../sushi-font-widget.h"
 
 class MainWindow;
@@ -11,7 +12,7 @@ struct GoogleFontsFamilyLoadData;
 
 class GoogleFontsWindow: public Gtk::Window {
     public:
-        GoogleFontsWindow(MainWindow *mainWindow);
+        GoogleFontsWindow(std::vector<FontFamilyData*>* fonts);
 
         bool queuedFontListScroll();
         void fontListScroll();
@@ -25,7 +26,7 @@ class GoogleFontsWindow: public Gtk::Window {
 
         std::string *getStylePreviewText();
 
-        MainWindow *mainWindow;
+        std::vector<FontFamilyData*>* fontFamilies = NULL;
 
         Gtk::HeaderBar *headerBar;
         Gtk::Label *headerBarCustomText;

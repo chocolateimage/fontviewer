@@ -7,7 +7,7 @@
 
 class MainWindow: public Gtk::Window {
     public:
-        MainWindow(std::string*);
+        MainWindow(std::vector<FontFamilyData*>* fonts, std::string* defaultFileName);
         void loadFonts();
         bool queuedfontListScrollCallback();
         void fontListScroll();

@@ -104,8 +104,20 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list)
     
 }
 
-MainWindow::MainWindow(std::string* defaultFileName) {
-    loadFonts();
+std::vector<FontFamilyData*>* loadFonts() {
+    auto fontFamilies = new std::vector<FontFamilyData*>();
+    FcPattern* p = FcPatternCreate();
+    FcObjectSet* objectSet = FcObjectSetBuild(FC_FILE,FC_INDEX,FC_FAMILY,FC_WEIGHT,FC_SLANT,FC_STYLE,NULL);
+    FcFontSet* fontSet = FcFontList(NULL,p,objectSet);
+    FcPatternDestroy(p);
+    FcObjectSetDestroy(objectSet);
+    loadFontFamiliesFromSet(fontSet,fontFamilies);
+    FcFontSetDestroy(fontSet);
+    return fontFamilies;
+}
+
+MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* defaultFileName) {
+    this->fontFamilies = fonts;
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
         ".font-style-window {background-color: @insensitive_base_color;} "
@@ -284,17 +296,6 @@ MainWindow::MainWindow(std::string* defaultFileName) {
         switchToFontFile(*defaultFileName);
         stack->set_transition_duration(200);
     }
-}
-
-void MainWindow::loadFonts() {
-    this->fontFamilies = new std::vector<FontFamilyData*>();
-    FcPattern* p = FcPatternCreate();
-    FcObjectSet* objectSet = FcObjectSetBuild(FC_FILE,FC_INDEX,FC_FAMILY,FC_WEIGHT,FC_SLANT,FC_STYLE,NULL);
-    FcFontSet* fontSet = FcFontList(NULL,p,objectSet);
-    FcPatternDestroy(p);
-    FcObjectSetDestroy(objectSet);
-    loadFontFamiliesFromSet(fontSet,fontFamilies);
-    FcFontSetDestroy(fontSet);
 }
 
 void MainWindow::switchToFontFamily(int fontIndex) {
@@ -681,7 +682,7 @@ void MainWindow::openGoogleFonts() {
         return;
     }
 
-    googleFontsWindow = new GoogleFontsWindow(this);
+    googleFontsWindow = new GoogleFontsWindow(this->fontFamilies);
 }
 
 MainWindow::~MainWindow() {
@@ -689,13 +690,40 @@ MainWindow::~MainWindow() {
 }
 
 int main(int argc, char** argv) {
+    bool entryGoogleFontsValue = false;
+
+    Glib::OptionEntry entryGoogleFonts;
+    entryGoogleFonts.set_long_name("google-fonts");
+    entryGoogleFonts.set_description("Open the Google Fonts window instead of the system fonts");
+
+    Glib::OptionGroup optionGroup("options", "Options");
+    optionGroup.add_entry(entryGoogleFonts, entryGoogleFontsValue);
+    
+    Glib::OptionContext optionContext("[Filename of font]");
+    optionContext.set_main_group(optionGroup);
+
+    try {
+        optionContext.parse(argc, argv);
+    } catch (const Glib::OptionError& ex) {
+        std::cerr << ex.what() << std::endl;
+        return 1;
+    }
+
     Gtk::Main* app = new Gtk::Main();
     FcInit();
     std::string* defaultFileName = NULL;
     if (argc > 1) {
         defaultFileName = new std::string(argv[1]);
     }
-    MainWindow* win = new MainWindow(defaultFileName);
+
+    auto fonts = loadFonts();
+
+    Gtk::Window* win = NULL;
+    if (entryGoogleFontsValue) {
+        win = new GoogleFontsWindow(fonts);
+    } else {
+        win = new MainWindow(fonts, defaultFileName);
+    }
     app->run(*win);
     return 0;
 }

@@ -307,7 +307,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
                         cairo_t *cr)
 {
   SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
-  g_autofree gint *sizes = NULL;
   gint font_size;
   cairo_font_face_t *font = NULL;
   FT_Face face = self->face;
@@ -344,9 +343,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   );
   cairo_t* cr2 = cairo_create(cr2surface);
 
-
-  gdk_cairo_set_source_rgba (cr2, &color);
-
   font_size = get_size_from_face (face);
 
   font = cairo_ft_font_face_create_for_ft_face (face, 0);
@@ -356,12 +352,11 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_set_font_face (cr2, font);
   cairo_set_font_size (cr2, font_size);
 
-  if (self->lowercase_text != NULL)
-    draw_string (self, cr2, padding, self->lowercase_text);
-
   cairo_set_source_rgba(cr2,0,0,0,0.01);
   cairo_rectangle(cr2,0,0,1, 1);
   cairo_fill(cr2);
+
+  gdk_cairo_set_source_rgba (cr2, &color);
 
   if (self->lowercase_text != NULL)
     draw_string (self, cr2, padding, self->lowercase_text);

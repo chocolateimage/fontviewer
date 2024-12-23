@@ -3,7 +3,7 @@
 set -e
 
 echo "Installing dependencies..."
-sudo apt install meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+sudo apt install git g++ meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
 
 echo "Cloning repository..."
 mkdir -p /tmp/fontviewerinstall

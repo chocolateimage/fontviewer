@@ -51,21 +51,13 @@ struct _SushiFontWidget {
   FT_Face face;
   gchar *face_contents;
 
-  const gchar *lowercase_text;
-  const gchar *uppercase_text;
-  const gchar *punctuation_text;
-
-  gchar *sample_string;
-
-  gchar *font_name;
+  const gchar *text;
 };
 
 static GParamSpec *properties[NUM_PROPERTIES] = { NULL, };
 static guint signals[NUM_SIGNALS] = { 0, };
 
 G_DEFINE_TYPE (SushiFontWidget, sushi_font_widget, GTK_TYPE_DRAWING_AREA)
-
-#define SURFACE_SIZE 4
 
 static void
 text_to_glyphs (cairo_t *cr,
@@ -195,65 +187,6 @@ draw_string (SushiFontWidget *self,
   cairo_show_glyphs (cr, glyphs, num_glyphs);
 }
 
-static gchar *
-build_charlist_for_face (FT_Face face,
-                         gint *length)
-{
-  g_autoptr(GString) string = NULL;
-  gulong c;
-  guint glyph;
-  gint total_chars = 0;
-
-  string = g_string_new (NULL);
-
-  c = FT_Get_First_Char (face, &glyph);
-
-  while (glyph != 0) {
-    g_string_append_unichar (string, (gunichar) c);
-    c = FT_Get_Next_Char (face, c, &glyph);
-    total_chars++;
-  }
-
-  if (length)
-    *length = total_chars;
-
-  return g_strdup (string->str);
-}
-
-static void
-select_best_charmap (SushiFontWidget *self)
-{
-  gchar *chars;
-  gint idx, n_chars;
-
-  if (FT_Select_Charmap (self->face, FT_ENCODING_UNICODE) == 0)
-    return;
-
-  for (idx = 0; idx < self->face->num_charmaps; idx++) {
-    if (FT_Set_Charmap (self->face, self->face->charmaps[idx]) != 0)
-      continue;
-
-    chars = build_charlist_for_face (self->face, &n_chars);
-    g_free (chars);
-
-    if (n_chars > 0)
-      break;
-  }
-}
-
-static void
-build_strings_for_face (SushiFontWidget *self)
-{
-  select_best_charmap (self);
-
-  self->uppercase_text = NULL;
-  self->punctuation_text = NULL;
-  self->sample_string = NULL;
-
-  g_free (self->font_name);
-  self->font_name = sushi_get_font_name (self->face, FALSE);
-}
-
 static gint get_size_from_face(FT_Face face)
 {
   gint *sizes = NULL;
@@ -358,8 +291,8 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 
   gdk_cairo_set_source_rgba (cr2, &color);
 
-  if (self->lowercase_text != NULL)
-    draw_string (self, cr2, padding, self->lowercase_text);
+  if (self->text != NULL)
+    draw_string (self, cr2, padding, self->text);
 
   cairo_pattern_t* linear_gradient = cairo_pattern_create_linear(0,0,allocated_width,allocated_height);
   cairo_pattern_add_color_stop_rgba(linear_gradient,0,1,1,1,1);
@@ -395,8 +328,6 @@ font_face_async_ready_cb (GObject *object,
 
     return;
   }
-
-  build_strings_for_face (self);
 
   gtk_widget_queue_resize (GTK_WIDGET (self));
   g_signal_emit (self, signals[LOADED], 0);
@@ -473,8 +404,6 @@ sushi_font_widget_finalize (GObject *object)
 
   g_free (self->uri);
 
-  g_free (self->font_name);
-  g_free (self->sample_string);
   g_free (self->face_contents);
 
   G_OBJECT_CLASS (sushi_font_widget_parent_class)->finalize (object);
@@ -560,5 +489,5 @@ sushi_font_widget_get_uri (SushiFontWidget *self)
 
 void sushi_font_widget_set_text(SushiFontWidget *self, const gchar* text) {
 
-  self->lowercase_text = text;
+  self->text = text;
 }

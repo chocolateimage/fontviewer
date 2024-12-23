@@ -62,6 +62,7 @@ GoogleFontsWindow::GoogleFontsWindow(MainWindow *mainWindow) {
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
         "notebook tabs {padding-left: 60px; padding-right: 60px;} "
+        ".disabled-icon { color: @insensitive_fg_color; }"
         );
     this->get_style_context()->add_provider_for_screen(Gdk::Screen::get_default(),provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
@@ -326,6 +327,20 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
             btnStyleCount->set_text(Glib::ustring::compose(_("%1 styles"),std::to_string(i->styles.size())));
             btnHeaderBox->pack_start(*btnStyleCount,Gtk::PACK_SHRINK,0);
         }
+        
+        Gtk::Label* installedLabel = new Gtk::Label();
+        installedLabel->set_valign(Gtk::ALIGN_CENTER);
+        installedLabel->set_text(_("Installed"));
+        installedLabel->set_sensitive(false);
+        btnHeaderBox->pack_end(*installedLabel,Gtk::PACK_SHRINK,0);
+        fontListItem->installedLabelWidget = installedLabel;
+
+        Gtk::Image *installedIcon = new Gtk::Image();
+        installedIcon->set_valign(Gtk::ALIGN_CENTER);
+        installedIcon->set_from_icon_name("emblem-ok", Gtk::ICON_SIZE_BUTTON);
+        installedIcon->get_style_context()->add_class("disabled-icon");
+        btnHeaderBox->pack_end(*installedIcon,Gtk::PACK_SHRINK,0);
+        fontListItem->installedIconWidget = installedIcon;
 
         btnBox->add(*btnHeaderBox);
 
@@ -342,6 +357,11 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         btn->add(*btnBox);
 
         btn->show_all();
+
+        if (!i->isInstalled) {
+            fontListItem->installedLabelWidget->hide();
+            fontListItem->installedIconWidget->hide();
+        }
 
         self->familyListBox->add(*btn);
 
@@ -837,6 +857,8 @@ void GoogleFontsWindow::installButtonClick() {
             listItem->fontFamily->isInstalled = false;
             this->specimenInstallButton->set_sensitive(true);
             this->installButtonReload();
+            listItem->installedLabelWidget->hide();
+            listItem->installedIconWidget->hide();
             delete dispatcher;
         });
         if (paths.empty()) {
@@ -859,6 +881,8 @@ void GoogleFontsWindow::installButtonClick() {
             listItem->fontFamily->isInstalled = true;
             this->specimenInstallButton->set_sensitive(true);
             this->installButtonReload();
+            listItem->installedLabelWidget->show();
+            listItem->installedIconWidget->show();
             delete dispatcher;
         });
 

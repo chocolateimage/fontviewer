@@ -80,6 +80,8 @@ struct GoogleFontsFamilyListItem {
     Gtk::Button* button;
     Gtk::Box* buttonBox;
     Gtk::Label* placeholderText;
+    Gtk::Widget* installedIconWidget;
+    Gtk::Widget* installedLabelWidget;
     GoogleFontsFamily* fontFamily;
     bool hasBeenViewed;
 

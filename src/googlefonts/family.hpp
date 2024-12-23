@@ -18,6 +18,9 @@ public:
     Gtk::Button *button;
 
     std::vector<GoogleFontsStyle*> styles;
+
+    bool isInstalled;
+    std::vector<std::string> paths;
 };
 
 class GoogleFontsStyle {

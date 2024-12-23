@@ -14,6 +14,7 @@
 #include "../pangram.hpp"
 #include "../sushi-font-widget.h"
 #include "../utils.hpp"
+#include "../mainwindow.hpp"
 
 std::string loadStringFromURI(std::string uri) {
     auto file = Gio::File::create_for_uri(uri);
@@ -55,7 +56,9 @@ std::string sendPOSTRequest(std::string uri, std::string json) {
     return response;
 }
 
-GoogleFontsWindow::GoogleFontsWindow() {
+GoogleFontsWindow::GoogleFontsWindow(MainWindow *mainWindow) {
+    this->mainWindow = mainWindow;
+
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
         "notebook tabs {padding-left: 60px; padding-right: 60px;} "
@@ -67,6 +70,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
     this->styleListItems = NULL;
     this->stylePreviewText = new std::string("");
     this->userOverridenStylePreviewText = NULL;
+    this->currentFontListItem = NULL;
 
     this->resize(1000, 700);
     this->set_title("Google Fonts");
@@ -74,6 +78,8 @@ GoogleFontsWindow::GoogleFontsWindow() {
     headerBar = new Gtk::HeaderBar();
     headerBar->set_title("Google Fonts");
     headerBar->set_show_close_button();
+    headerBarCustomText = new Gtk::Label();
+    headerBarCustomText->show();
     backButton = new Gtk::Button();
     backButton->set_image_from_icon_name("go-previous-symbolic");
     backButton->signal_clicked().connect(sigc::mem_fun(*this,&GoogleFontsWindow::switchToFontList));
@@ -110,10 +116,19 @@ GoogleFontsWindow::GoogleFontsWindow() {
     boxSpecimen->set_margin_top(18);
     boxSpecimen->set_spacing(8);
     
+    specimenHeader = new Gtk::Box();
+
     specimenTitle = new Gtk::Label();
     specimenTitle->set_alignment(Gtk::ALIGN_START);
     setFontSizeOfWidget(specimenTitle, 32);
-    boxSpecimen->add(*specimenTitle);
+    specimenHeader->add(*specimenTitle);
+
+    specimenInstallButton = new Gtk::Button();
+    specimenInstallButton->set_valign(Gtk::ALIGN_START);
+    specimenInstallButton->signal_clicked().connect(sigc::mem_fun(*this, &GoogleFontsWindow::installButtonClick));
+    specimenHeader->pack_end(*specimenInstallButton, Gtk::PACK_SHRINK);
+
+    boxSpecimen->add(*specimenHeader);
 
     specimenAuthors = new Gtk::Label();
     specimenAuthors->set_alignment(Gtk::ALIGN_START);
@@ -250,6 +265,14 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
         }
         g_list_free(stylesList);
 
+        family->isInstalled = false;
+        for (FontFamilyData* fontFamily : *self->mainWindow->fontFamilies) {
+            if (fontFamily->family == family->family) {
+                family->isInstalled = true;
+                break;
+            }
+        }
+
         self->families->push_back(family);
     }
 
@@ -334,15 +357,24 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
 void GoogleFontsWindow::switchToFontList() {
     this->backButton->hide();
     this->stack->set_visible_child("list");
+    this->currentFontListItem = NULL;
+
+    gtk_header_bar_set_custom_title(headerBar->gobj(), NULL);
 }
 
 void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListItem) {
+    this->currentFontListItem = fontListItem;
     this->backButton->show();
     this->stack->set_visible_child("view");
     this->notebook->set_current_page(0);
     this->swSpecimen->get_vadjustment()->set_value(0);
 
+    headerBarCustomText->set_text(fontListItem->fontFamily->displayName);
+    headerBar->set_custom_title(*headerBarCustomText);
+
     specimenTitle->set_text(fontListItem->fontFamily->displayName);
+
+    this->installButtonReload();
 
     if (this->styleListItems != NULL) {
         for (auto styleListItem : *this->styleListItems) {
@@ -763,4 +795,163 @@ void GoogleFontsWindow::userOverridenStylePreviewTextChanged() {
     }
 
     this->updateStylePreview();
+}
+
+void GoogleFontsWindow::installButtonReload() {
+    specimenInstallButton->get_style_context()->remove_class("suggested-action");
+    specimenInstallButton->get_style_context()->remove_class("destructive-action");
+
+    if (this->currentFontListItem->fontFamily->isInstalled) {
+        specimenInstallButton->get_style_context()->add_class("destructive-action");
+        specimenInstallButton->set_label(_("Uninstall"));
+    } else {
+        specimenInstallButton->get_style_context()->add_class("suggested-action");
+        specimenInstallButton->set_label(_("Install"));
+    }
+}
+
+void GoogleFontsWindow::installButtonClick() {
+    this->specimenInstallButton->set_sensitive(false);
+    GoogleFontsFamilyListItem *listItem = this->currentFontListItem;
+    if (listItem->fontFamily->isInstalled) {
+        this->specimenInstallButton->set_label(_("Uninstalling..."));
+        std::vector<std::string> paths;
+        for (FontFamilyData* fontFamily : *this->mainWindow->fontFamilies) {
+            if (fontFamily->family == listItem->fontFamily->family) {
+                for (auto path : *fontFamily->paths) {
+                    paths.push_back(path);
+                }
+                break;
+            }
+        }
+        for (auto path : listItem->fontFamily->paths) {
+            paths.push_back(path);
+        }
+        for (auto path : paths) {
+            auto file = Gio::File::create_for_path(path);
+            file->remove();
+        }
+        listItem->fontFamily->paths.clear();
+        Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
+        dispatcher->connect([this, listItem, dispatcher]() {
+            listItem->fontFamily->isInstalled = false;
+            this->specimenInstallButton->set_sensitive(true);
+            this->installButtonReload();
+            delete dispatcher;
+        });
+        if (paths.empty()) {
+            Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this,_("Error uninstalling font"),false,Gtk::MESSAGE_ERROR,Gtk::BUTTONS_OK,true);
+            dialog->set_secondary_text("No files for font found");
+            dialog->show_all();
+            dialog->signal_response().connect_notify([dialog](int response){delete dialog;});
+            dispatcher->emit();
+        } else {
+            std::thread([dispatcher] () {
+                system("fc-cache -fv");
+                dispatcher->emit();
+            }).detach();
+        }
+    } else {
+        this->specimenInstallButton->set_label(_("Installing..."));
+
+        Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
+        dispatcher->connect([this, listItem, dispatcher]() {
+            listItem->fontFamily->isInstalled = true;
+            this->specimenInstallButton->set_sensitive(true);
+            this->installButtonReload();
+            delete dispatcher;
+        });
+
+        std::thread([listItem, dispatcher] () {
+            // Prepare font directory
+            std::string userDataDir = Glib::get_user_data_dir();
+
+            FcStrList* fontDirs = FcConfigGetFontDirs(NULL);
+            FcChar8* fontDirPath;
+
+            Glib::RefPtr<Gio::File> fontDirectory;
+
+
+            while ((fontDirPath = FcStrListNext(fontDirs)) != NULL) {
+                std::string fontDirPathStr((char*)fontDirPath);
+                if (fontDirPathStr.rfind(userDataDir,0) == 0) {
+                    fontDirectory = Gio::File::create_for_path(std::string((char*)fontDirPath));
+                    break;
+                }
+            }
+
+            if (!fontDirectory) {
+                return;
+            }
+
+            if (!fontDirectory->query_exists()) {
+                fontDirectory->make_directory_with_parents();
+            }
+
+
+            // Download fonts
+            std::string family = listItem->fontFamily->family;
+
+            std::string listResponse = loadStringFromURI("https://fonts.google.com/download/list?family=" + Glib::uri_escape_string(family));
+            listResponse = listResponse.substr(5); // Remove ")]}'\n" that Google adds at the start
+
+            JsonParser *parser = json_parser_new();
+            json_parser_load_from_data(parser, listResponse.c_str(), listResponse.size(), NULL);
+
+            JsonNode *root = json_parser_get_root(parser);
+            JsonObject *rootObject = json_node_get_object(root);
+            JsonObject *manifest = json_object_get_object_member(rootObject, "manifest");
+            JsonArray *fileRefs = json_object_get_array_member(manifest, "fileRefs");
+            int fileRefsLength = json_array_get_length(fileRefs);
+
+            bool fontInstalled = false;
+
+            for (int i = 0; i < fileRefsLength; i++) {
+                JsonObject *fileRef = json_array_get_object_element(fileRefs, i);
+
+                std::string url = json_object_get_string_member(fileRef, "url");
+                std::string filename = json_object_get_string_member(fileRef, "filename");
+
+                if (filename.find("/") != std::string::npos) {
+                    continue;
+                }
+                
+                auto finalFile = fontDirectory->get_child(filename);;
+                if (finalFile->query_exists()) {
+                    continue;
+                }
+
+                auto path = finalFile->get_path();
+
+                FILE *file = fopen(path.c_str(), "w");
+                auto onlineFile = Gio::File::create_for_uri(url);
+
+                auto stream = onlineFile->read();
+
+                char buffer[4096];
+                gsize bytes_read;
+                while (true) {
+                    bytes_read = stream->read(buffer, sizeof(buffer));
+                    if (bytes_read == 0) {
+                        break;
+                    }
+
+                    fwrite(buffer, bytes_read, 1, file);
+                }
+                fflush(file);
+                fclose(file);
+
+                fontInstalled = true;
+                listItem->fontFamily->paths.push_back(path);
+            }
+
+            g_object_unref(parser);
+
+            if (fontInstalled) {
+                system("fc-cache -fv");
+            }
+            
+            dispatcher->emit();
+        }).detach();
+    }
 }

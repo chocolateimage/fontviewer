@@ -4,13 +4,14 @@
 #include "family.hpp"
 #include "../sushi-font-widget.h"
 
+class MainWindow;
 struct GoogleFontsFamilyListItem;
 struct GoogleFontsStyleListItem;
 struct GoogleFontsFamilyLoadData;
 
 class GoogleFontsWindow: public Gtk::Window {
     public:
-        GoogleFontsWindow();
+        GoogleFontsWindow(MainWindow *mainWindow);
 
         bool queuedFontListScroll();
         void fontListScroll();
@@ -19,10 +20,15 @@ class GoogleFontsWindow: public Gtk::Window {
         void switchToFontFamily(GoogleFontsFamilyListItem* fontListItem);
         void updateStylePreview();
         void userOverridenStylePreviewTextChanged();
+        void installButtonReload();
+        void installButtonClick();
 
         std::string *getStylePreviewText();
 
+        MainWindow *mainWindow;
+
         Gtk::HeaderBar *headerBar;
+        Gtk::Label *headerBarCustomText;
         Gtk::Button *backButton;
         Gtk::SearchEntry *searchEntry;
         Gtk::Stack *stack;
@@ -37,7 +43,9 @@ class GoogleFontsWindow: public Gtk::Window {
 
         Gtk::ScrolledWindow *swSpecimen;
         Gtk::Box *boxSpecimen;
+        Gtk::Box *specimenHeader;
         Gtk::Label *specimenTitle;
+        Gtk::Button *specimenInstallButton;
         Gtk::Label *specimenAuthors;
         Gtk::Entry *specimenStylesCustomPreviewEntry;
         Gtk::Box *specimenStyles;
@@ -55,6 +63,8 @@ class GoogleFontsWindow: public Gtk::Window {
         std::vector<GoogleFontsFamilyListItem*>* fontListItems;
         std::vector<GoogleFontsStyleListItem*>* styleListItems;
         std::vector<GoogleFontsFamily*>* families;
+
+        GoogleFontsFamilyListItem* currentFontListItem;
     private:
         std::string *_newSampleText;
         std::string *_newLicense;

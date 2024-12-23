@@ -15,55 +15,21 @@
 #include FT_MULTIPLE_MASTERS_H
 #include <freetype2/ft2build.h>
 #include "sushi-font-widget.h"
-#include "googlefonts/google-fonts-window.hpp"
 #include "pangram.hpp"
+#include "font.hpp"
+#include "mainwindow.hpp"
 #include "utils.hpp"
 
-struct FontStyleData;
 struct FontWidgetLoadData;
 class MainWindow;
 void MainWindow_fontWidgetLoaded(SushiFontWidget*, FontWidgetLoadData*);
 void MainWindow_installFontTask(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
 void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, gpointer user_data);
 
-struct FontFamilyData {
-    std::string family;
-    std::vector<std::string>* paths; // for the tooltip
-    long fileCreationTime;
-    std::vector<FontStyleData*>* styles;
-    bool isModifiedGrouping;
-};
-struct FontStyleData {
-    FontFamilyData* family;
-    std::string path; // store path in FontStyleData because some fonts have their weights/slants/etc in different files
-    int weight;
-    int slant;
-    int index;
-    int sortingOrder;
-};
-
-struct FontListItem {
-    Gtk::Button* button;
-    Gtk::Label* preview;
-    FontFamilyData* fontFamily;
-    bool hasBeenViewed;
-};
-struct FontStyleListItem {
-    Gtk::Button* button;
-    SushiFontWidget* fontWidget;
-    Gtk::Widget* fontWidgetMM;
-};
-struct FontStyleRow {
-    std::string name;
-    Gtk::Label* lblName;
-    Gtk::Label* lblValue;
-};
 struct FontWidgetLoadData {
     MainWindow* self;
     SushiFontWidget* fontWidget;
 };
-
-std::vector<FontFamilyData*>* fontFamilies = NULL;
 
 void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list) {
     std::map<std::string,FontFamilyData*> familyMap{};
@@ -137,65 +103,6 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list)
     });
     
 }
-
-void loadFonts() {
-    fontFamilies = new std::vector<FontFamilyData*>();
-    FcPattern* p = FcPatternCreate();
-    FcObjectSet* objectSet = FcObjectSetBuild(FC_FILE,FC_INDEX,FC_FAMILY,FC_WEIGHT,FC_SLANT,FC_STYLE,NULL);
-    FcFontSet* fontSet = FcFontList(NULL,p,objectSet);
-    FcPatternDestroy(p);
-    FcObjectSetDestroy(objectSet);
-    loadFontFamiliesFromSet(fontSet,fontFamilies);
-    FcFontSetDestroy(fontSet);
-}
-
-
-class MainWindow: public Gtk::Window {
-    public:
-        MainWindow(std::string*);
-        bool queuedfontListScrollCallback();
-        void fontListScroll();
-        void switchToFontFamily(int);
-        void switchToFontFile(std::string);
-        void loadFont();
-        void fontPreviewTextChanged();
-        void switchToFontList();
-        void addInfoText(std::string,std::string);
-        void installFontClicked();
-        bool windowKeyPressEvent(GdkEventKey* event);
-        void searchUpdated();
-        void openGoogleFonts();
-        ~MainWindow();
-
-        int currentFontIndex;
-        std::string* currentFontPath;
-        FontFamilyData* familyData;
-        std::vector<FontListItem*>* fontListItems;
-        Gtk::HeaderBar* headerBar;
-        Gtk::SearchBar* searchBar;
-        Gtk::SearchEntry* searchEntry;
-        Gtk::Label* headerBarCustomText;
-        Gtk::Button* backButton;
-        Gtk::Button* installButton;
-        Gtk::ToggleButton* searchButton;
-        Gtk::Button* googleFontsButton;
-        Gtk::Stack* stack;
-        Gtk::ScrolledWindow* fontsListScrollWidget;
-        Gtk::Box* fontsListWidget;
-        Gtk::HBox* fontViewWidget;
-        Gtk::ScrolledWindow* fontFamilyScrollWidget;
-        Gtk::Box* fontFamilyBoxWidget;
-        Gtk::Label* fontFamilyLabelWidget;
-        Gtk::ScrolledWindow* fontStyleScrollWidget;
-        Gtk::Box* fontStyleRowsWidget;
-        Gtk::Entry* fontFamilyEntryWidget;
-        std::string* currentPreviewText;
-        std::vector<FontStyleListItem*>* fontStyleListItems;
-        std::vector<FontStyleRow*>* fontStyleRows;
-
-        GoogleFontsWindow* googleFontsWindow;
-};
-
 
 MainWindow::MainWindow(std::string* defaultFileName) {
     loadFonts();
@@ -377,6 +284,17 @@ MainWindow::MainWindow(std::string* defaultFileName) {
         switchToFontFile(*defaultFileName);
         stack->set_transition_duration(200);
     }
+}
+
+void MainWindow::loadFonts() {
+    this->fontFamilies = new std::vector<FontFamilyData*>();
+    FcPattern* p = FcPatternCreate();
+    FcObjectSet* objectSet = FcObjectSetBuild(FC_FILE,FC_INDEX,FC_FAMILY,FC_WEIGHT,FC_SLANT,FC_STYLE,NULL);
+    FcFontSet* fontSet = FcFontList(NULL,p,objectSet);
+    FcPatternDestroy(p);
+    FcObjectSetDestroy(objectSet);
+    loadFontFamiliesFromSet(fontSet,fontFamilies);
+    FcFontSetDestroy(fontSet);
 }
 
 void MainWindow::switchToFontFamily(int fontIndex) {
@@ -731,7 +649,7 @@ void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, g
         return;
     }
 
-    fontFamilies->push_back(self->familyData);
+    self->fontFamilies->push_back(self->familyData);
     self->loadFont();
 }
 
@@ -763,7 +681,7 @@ void MainWindow::openGoogleFonts() {
         return;
     }
 
-    googleFontsWindow = new GoogleFontsWindow();
+    googleFontsWindow = new GoogleFontsWindow(this);
 }
 
 MainWindow::~MainWindow() {

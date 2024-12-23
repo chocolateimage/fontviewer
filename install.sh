@@ -3,7 +3,16 @@
 set -e
 
 echo "Installing dependencies..."
-sudo apt install git g++ meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+if command -v apt >/dev/null
+then
+    sudo apt install git g++ meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+elif command -v dnf >/dev/null
+then
+    sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel
+else
+    echo "Could not find a package manager, try manually installing with the \"Building/installing from source\" section in the README"
+    exit 1
+fi
 
 echo "Cloning repository..."
 mkdir -p /tmp/fontviewerinstall

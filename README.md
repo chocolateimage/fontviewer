@@ -22,7 +22,11 @@ You need to have `meson` installed.
 
 Install all dependencies:
 ```bash
+# Debian/Ubuntu (apt)
 sudo apt install meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+
+# Fedora
+sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel
 ```
 You may want to remove `libcurl4-gnutls-dev` from the install list if you already have libcurl-dev installed.
 

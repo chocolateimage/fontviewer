@@ -132,6 +132,27 @@ GoogleFontsWindow::GoogleFontsWindow() {
     swSpecimen->add(*boxSpecimen);
     notebook->append_page(*swSpecimen, _("Specimen"));
 
+    swLicense = new Gtk::ScrolledWindow();
+    boxLicense = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
+    boxLicense->set_margin_left(60);
+    boxLicense->set_margin_right(60);
+    boxLicense->set_margin_top(18);
+    boxLicense->set_spacing(12);
+
+    Gtk::Label *licenseTitleLabel = new Gtk::Label();
+    licenseTitleLabel->set_alignment(Gtk::ALIGN_START);
+    setFontSizeOfWidget(licenseTitleLabel, 18);
+    licenseTitleLabel->set_text(_("License"));
+    boxLicense->add(*licenseTitleLabel);
+
+    licenseLabel = new Gtk::Label();
+    licenseLabel->set_alignment(Gtk::ALIGN_START);
+    licenseLabel->set_selectable(true);
+    boxLicense->add(*licenseLabel);
+
+    swLicense->add(*boxLicense);
+    notebook->append_page(*swLicense, _("License"));
+
     stack->add(*notebook, "view");
 
     GCancellable* cancellable = g_cancellable_new();
@@ -332,37 +353,82 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
 
     Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
     this->stylePreviewText = new std::string("");
+    this->licenseLabel->set_text("");
     dispatcher->connect([this, dispatcher]() {
         if (this->stylePreviewText != NULL) {
             delete this->stylePreviewText;
         }
         this->stylePreviewText = this->_newSampleText;
         this->updateStylePreview();
+        this->licenseLabel->set_markup(*this->_newLicense);
         this->_newSampleText = NULL;
+        delete this->_newLicense;
+        this->_newLicense = NULL;
         delete dispatcher;
     });
     std::thread([this, fontListItem, dispatcher]() {
-        JsonArray *array = json_array_new();
-        JsonArray *array2 = json_array_new();
-        json_array_add_string_element(array2, fontListItem->fontFamily->family.c_str());
-        json_array_add_array_element(array, array2);
-        JsonNode *root = json_node_new(JSON_NODE_ARRAY);
-        json_node_set_array(root, array);
-        gchar *json = json_to_string(root, false);
-        std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/SampleText", json);
-        JsonParser *parser = json_parser_new();
-        json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
-        JsonNode *parseRoot = json_parser_get_root(parser);
-        const gchar *sampleText = json_array_get_string_element(
-            json_array_get_array_element(
-                json_node_get_array(parseRoot), 
+        {
+            JsonArray *array = json_array_new();
+            JsonArray *array2 = json_array_new();
+            json_array_add_string_element(array2, fontListItem->fontFamily->family.c_str());
+            json_array_add_array_element(array, array2);
+            JsonNode *root = json_node_new(JSON_NODE_ARRAY);
+            json_node_set_array(root, array);
+            gchar *json = json_to_string(root, false);
+            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/SampleText", json);
+            JsonParser *parser = json_parser_new();
+            json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
+            JsonNode *parseRoot = json_parser_get_root(parser);
+            const gchar *sampleText = json_array_get_string_element(
+                json_array_get_array_element(
+                    json_node_get_array(parseRoot), 
+                    2
+                ), 
                 2
-            ), 
-            2
-        );
-        this->_newSampleText = new std::string(sampleText);
+            );
+            this->_newSampleText = new std::string(sampleText);
+            g_object_unref(parser);
+        }
+        {
+            JsonArray *array = json_array_new();
+            JsonArray *array2 = json_array_new();
+            JsonArray *array3 = json_array_new();
+            json_array_add_string_element(array3, fontListItem->fontFamily->family.c_str());
+            json_array_add_array_element(array2, array3);
+            json_array_add_array_element(array, array2);
+            JsonNode *root = json_node_new(JSON_NODE_ARRAY);
+            json_node_set_array(root, array);
+            gchar *json = json_to_string(root, false);
+            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/License", json);
+            JsonParser *parser = json_parser_new();
+            json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
+            JsonNode *parseRoot = json_parser_get_root(parser);
+            const gchar *license = json_array_get_string_element(
+                json_array_get_array_element(
+                    json_array_get_array_element(
+                        json_node_get_array(parseRoot), 
+                        0
+                    ), 
+                    0
+                ),
+                1
+            );
+            this->_newLicense = new std::string(license);
+            replaceAllInString(this->_newLicense, "\r\n", "\n");
+            replaceAllInString(this->_newLicense, "<p>", "<span>");
+            replaceAllInString(this->_newLicense, "</p>", "</span>");
+            replaceAllInString(this->_newLicense, "<h3>", "<big>");
+            replaceAllInString(this->_newLicense, "</h3>", "</big>");
+            replaceAllInString(this->_newLicense, "<ul>", "<span>");
+            replaceAllInString(this->_newLicense, "</ul>", "</span>");
+            replaceAllInString(this->_newLicense, "<li>\n    ", "<span>    - ");
+            replaceAllInString(this->_newLicense, "<li>\n", "<span>    -");
+            replaceAllInString(this->_newLicense, "<li>", "<span>    -");
+            replaceAllInString(this->_newLicense, "</li>", "</span>");
+            replaceAllInString(this->_newLicense, "&", "&amp;");
+            g_object_unref(parser);
+        }
         dispatcher->emit();
-        g_object_unref(parser);
     }).detach();
 
     for (auto style : fontListItem->fontFamily->styles) {

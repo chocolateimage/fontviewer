@@ -103,7 +103,7 @@ GoogleFontsWindow::GoogleFontsWindow() {
 
     notebook = new Gtk::Notebook();
 
-    Gtk::ScrolledWindow *swSpecimen = new Gtk::ScrolledWindow();
+    swSpecimen = new Gtk::ScrolledWindow();
     boxSpecimen = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
     boxSpecimen->set_margin_left(60);
     boxSpecimen->set_margin_right(60);
@@ -313,6 +313,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
     this->backButton->show();
     this->stack->set_visible_child("view");
     this->notebook->set_current_page(0);
+    this->swSpecimen->get_vadjustment()->set_value(0);
 
     specimenTitle->set_text(fontListItem->fontFamily->displayName);
 
@@ -608,6 +609,9 @@ bool GoogleFontsWindow::queuedFontListScroll() {
 }
 
 void GoogleFontsWindow::searchUpdated() {
+    if (this->stack->get_visible_child_name() != "list") {
+        this->switchToFontList();
+    }
     std::string input = this->searchEntry->get_text().lowercase();
     for (GoogleFontsFamilyListItem* listItem : *fontListItems) {
         std::string family = listItem->fontFamily->displayName;

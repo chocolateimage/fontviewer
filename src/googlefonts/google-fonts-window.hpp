@@ -33,6 +33,7 @@ class GoogleFontsWindow: public Gtk::Window {
         Gtk::Box* familyListBox;
 
         Gtk::Notebook *notebook;
+        Gtk::ScrolledWindow *swSpecimen;
         Gtk::Box *boxSpecimen;
         Gtk::Label *specimenTitle;
         Gtk::Entry *specimenStylesCustomPreviewEntry;

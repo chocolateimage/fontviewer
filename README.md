@@ -1,7 +1,7 @@
 # Font Viewer
-View and install fonts on a Linux system
+View and install fonts on a Linux system and install fonts from Google Fonts.
 
-![image](https://github.com/chocolateimage/fontviewer/assets/45315451/f3f4cfc3-c5d0-4eb1-84a3-82e0ec4d9d8d)
+![image](https://github.com/user-attachments/assets/2f94ce10-39b7-46c3-bc9b-fecb54ee9207)
 
 
 ---

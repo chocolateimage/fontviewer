@@ -15,144 +15,21 @@
 #include FT_MULTIPLE_MASTERS_H
 #include <freetype2/ft2build.h>
 #include "sushi-font-widget.h"
+#include "pangram.hpp"
+#include "font.hpp"
+#include "mainwindow.hpp"
+#include "utils.hpp"
 
-const char* PANGRAM = "The five boxing wizards jump quickly.";
-
-struct FontStyleData;
 struct FontWidgetLoadData;
 class MainWindow;
 void MainWindow_fontWidgetLoaded(SushiFontWidget*, FontWidgetLoadData*);
 void MainWindow_installFontTask(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
 void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, gpointer user_data);
 
-struct FontFamilyData {
-    std::string family;
-    std::vector<std::string>* paths; // for the tooltip
-    long fileCreationTime;
-    std::vector<FontStyleData*>* styles;
-    bool isModifiedGrouping;
-};
-struct FontStyleData {
-    FontFamilyData* family;
-    std::string path; // store path in FontStyleData because some fonts have their weights/slants/etc in different files
-    int weight;
-    int slant;
-    int index;
-    int sortingOrder;
-};
-
-struct FontListItem {
-    Gtk::Button* button;
-    Gtk::Label* preview;
-    FontFamilyData* fontFamily;
-    bool hasBeenViewed;
-};
-struct FontStyleListItem {
-    Gtk::Button* button;
-    SushiFontWidget* fontWidget;
-};
-struct FontStyleRow {
-    std::string name;
-    Gtk::Label* lblName;
-    Gtk::Label* lblValue;
-};
 struct FontWidgetLoadData {
     MainWindow* self;
     SushiFontWidget* fontWidget;
 };
-
-std::vector<FontFamilyData*>* fontFamilies = NULL;
-
-static const int fc_weight_to_weight (int weight) {
-    switch (weight) {
-    case FC_WEIGHT_THIN:
-        return PANGO_WEIGHT_THIN;
-    case FC_WEIGHT_EXTRALIGHT:
-        return PANGO_WEIGHT_ULTRALIGHT;
-    case FC_WEIGHT_LIGHT:
-        return PANGO_WEIGHT_LIGHT;
-    case FC_WEIGHT_SEMILIGHT:
-        return PANGO_WEIGHT_SEMILIGHT;
-    case FC_WEIGHT_BOOK:
-        return PANGO_WEIGHT_BOOK;
-    case FC_WEIGHT_REGULAR:
-        return PANGO_WEIGHT_NORMAL;
-    case FC_WEIGHT_MEDIUM:
-        return PANGO_WEIGHT_MEDIUM;
-    case FC_WEIGHT_SEMIBOLD:
-        return PANGO_WEIGHT_SEMIBOLD;
-    case FC_WEIGHT_BOLD:
-        return PANGO_WEIGHT_BOLD;
-    case FC_WEIGHT_EXTRABOLD:
-        return PANGO_WEIGHT_ULTRABOLD;
-    case FC_WEIGHT_HEAVY:
-        return PANGO_WEIGHT_HEAVY;
-    case FC_WEIGHT_EXTRABLACK:
-        return PANGO_WEIGHT_ULTRAHEAVY;
-    }
-
-    return PANGO_WEIGHT_NORMAL;
-}
-
-static const int fc_slant_to_slant (int slant) {
-    switch (slant) {
-    case FC_SLANT_ROMAN:
-        return PANGO_STYLE_NORMAL;
-    case FC_SLANT_OBLIQUE:
-        return PANGO_STYLE_OBLIQUE;
-    case FC_SLANT_ITALIC:
-        return PANGO_STYLE_ITALIC;
-    }
-
-    return PANGO_STYLE_NORMAL;
-}
-
-static const char* weight_to_name (int weight)
-{
-    switch (weight) {
-    case PANGO_WEIGHT_THIN:
-        return "Thin";
-    case PANGO_WEIGHT_ULTRALIGHT:
-        return "Extralight";
-    case PANGO_WEIGHT_LIGHT:
-        return "Light";
-    case PANGO_WEIGHT_SEMILIGHT:
-        return "Semilight";
-    case PANGO_WEIGHT_BOOK:
-        return "Book";
-    case PANGO_WEIGHT_NORMAL:
-        return "Regular";
-    case PANGO_WEIGHT_MEDIUM:
-        return "Medium";
-    case PANGO_WEIGHT_SEMIBOLD:
-        return "Semibold";
-    case PANGO_WEIGHT_BOLD:
-        return "Bold";
-    case PANGO_WEIGHT_ULTRABOLD:
-        return "Extrabold";
-    case PANGO_WEIGHT_HEAVY:
-        return "Heavy";
-    case PANGO_WEIGHT_ULTRAHEAVY:
-        return "Extrablack";
-    }
-
-    return "Unknown";
-}
-
-static const char* slant_to_name (int slant)
-{
-    switch (slant) {
-    case PANGO_STYLE_NORMAL:
-        return "";
-    case PANGO_STYLE_OBLIQUE:
-        return "Oblique";
-    case PANGO_STYLE_ITALIC:
-        return "Italic";
-    }
-
-    return "";
-}
-
 
 void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list) {
     std::map<std::string,FontFamilyData*> familyMap{};
@@ -227,8 +104,8 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list)
     
 }
 
-void loadFonts() {
-    fontFamilies = new std::vector<FontFamilyData*>();
+std::vector<FontFamilyData*>* loadFonts() {
+    auto fontFamilies = new std::vector<FontFamilyData*>();
     FcPattern* p = FcPatternCreate();
     FcObjectSet* objectSet = FcObjectSetBuild(FC_FILE,FC_INDEX,FC_FAMILY,FC_WEIGHT,FC_SLANT,FC_STYLE,NULL);
     FcFontSet* fontSet = FcFontList(NULL,p,objectSet);
@@ -236,54 +113,11 @@ void loadFonts() {
     FcObjectSetDestroy(objectSet);
     loadFontFamiliesFromSet(fontSet,fontFamilies);
     FcFontSetDestroy(fontSet);
+    return fontFamilies;
 }
 
-
-class MainWindow: public Gtk::Window {
-    public:
-        MainWindow(std::string*);
-        bool queuedfontListScrollCallback();
-        void fontListScroll();
-        void switchToFontFamily(int);
-        void switchToFontFile(std::string);
-        void loadFont();
-        void fontPreviewTextChanged();
-        void switchToFontList();
-        void addInfoText(std::string,std::string);
-        void installFontClicked();
-        bool windowKeyPressEvent(GdkEventKey* event);
-        void searchUpdated();
-        ~MainWindow();
-
-        int currentFontIndex;
-        std::string* currentFontPath;
-        FontFamilyData* familyData;
-        std::vector<FontListItem*>* fontListItems;
-        Gtk::HeaderBar* headerBar;
-        Gtk::SearchBar* searchBar;
-        Gtk::SearchEntry* searchEntry;
-        Gtk::Label* headerBarCustomText;
-        Gtk::Button* backButton;
-        Gtk::Button* installButton;
-        Gtk::ToggleButton* searchButton;
-        Gtk::Stack* stack;
-        Gtk::ScrolledWindow* fontsListScrollWidget;
-        Gtk::Box* fontsListWidget;
-        Gtk::HBox* fontViewWidget;
-        Gtk::ScrolledWindow* fontFamilyScrollWidget;
-        Gtk::Box* fontFamilyBoxWidget;
-        Gtk::Label* fontFamilyLabelWidget;
-        Gtk::ScrolledWindow* fontStyleScrollWidget;
-        Gtk::Box* fontStyleRowsWidget;
-        Gtk::Entry* fontFamilyEntryWidget;
-        std::string* currentPreviewText;
-        std::vector<FontStyleListItem*>* fontStyleListItems;
-        std::vector<FontStyleRow*>* fontStyleRows;
-};
-
-
-MainWindow::MainWindow(std::string* defaultFileName) {
-    loadFonts();
+MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* defaultFileName) {
+    this->fontFamilies = fonts;
     auto provider = Gtk::CssProvider::create();
     provider->load_from_data(
         ".font-style-window {background-color: @insensitive_base_color;} "
@@ -302,6 +136,7 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     currentPreviewText = NULL;
     currentFontPath = NULL;
     currentFontIndex = -1;
+    googleFontsWindow = NULL;
     headerBar = new Gtk::HeaderBar();
     headerBar->set_title(_("All Fonts"));
     headerBar->set_show_close_button();
@@ -318,6 +153,12 @@ MainWindow::MainWindow(std::string* defaultFileName) {
     searchButton = new Gtk::ToggleButton();
     searchButton->set_image_from_icon_name("edit-find-symbolic");
     headerBar->pack_end(*searchButton);
+
+    googleFontsButton = new Gtk::Button();
+    googleFontsButton->set_tooltip_text("Google Fonts");
+    googleFontsButton->set_image_from_icon_name("fontviewer-google-symbolic");
+    googleFontsButton->signal_clicked().connect(sigc::mem_fun(*this,&MainWindow::openGoogleFonts));
+    headerBar->pack_end(*googleFontsButton);
     
     this->set_size_request(100,100);
     this->set_default_size(950,600);
@@ -402,7 +243,7 @@ MainWindow::MainWindow(std::string* defaultFileName) {
         Gtk::Label* lblPreview = new Gtk::Label();
         fontListItem->preview = lblPreview;
         lblPreview->set_alignment(Gtk::ALIGN_START);
-        lblPreview->set_text(PANGRAM);
+        lblPreview->set_text(getPreviewTextForLanguage(""));
         btnBox->add(*lblPreview);
 
         btn->add(*btnBox);
@@ -489,6 +330,7 @@ void MainWindow::loadFont() {
     backButton->show();
     searchBar->hide();
     searchButton->hide();
+    googleFontsButton->hide();
 
     bool isInstalled = false;
     for (FontFamilyData* fontFamilyData : *fontFamilies) {
@@ -516,6 +358,7 @@ void MainWindow::loadFont() {
     fontFamilyLabelWidget->set_text(familyData->family);
     for (FontStyleListItem* fontStyleListItem : *fontStyleListItems) {
         fontFamilyBoxWidget->remove(*fontStyleListItem->button);
+        delete fontStyleListItem->fontWidgetMM;
         delete fontStyleListItem->button;
         delete fontStyleListItem;
     }
@@ -572,12 +415,13 @@ void MainWindow::loadFont() {
         loadData->self = this;
         loadData->fontWidget = fontWidget;
         g_signal_connect(fontWidget,"loaded",G_CALLBACK(MainWindow_fontWidgetLoaded),loadData);
-        sushi_font_widget_set_text(fontWidget,(gchar*)PANGRAM);
+        sushi_font_widget_set_text(fontWidget,(gchar*)getPreviewTextForLanguage(""));
         
         Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
         btnBox->add(*fontWidgetMM);
 
         fontStyleListItem->fontWidget = fontWidget;
+        fontStyleListItem->fontWidgetMM = fontWidgetMM;
 
         btn->add(*btnBox);
 
@@ -682,7 +526,7 @@ void MainWindow::fontPreviewTextChanged() {
     }
     for (FontStyleListItem* fontStyleListItem : *fontStyleListItems) {
         if (currentPreviewText == NULL) {
-            sushi_font_widget_set_text(fontStyleListItem->fontWidget,(gchar*)PANGRAM);
+            sushi_font_widget_set_text(fontStyleListItem->fontWidget,(gchar*)getPreviewTextForLanguage(""));
         } else {
             sushi_font_widget_set_text(fontStyleListItem->fontWidget,(gchar*)currentPreviewText->c_str());
         }
@@ -699,6 +543,7 @@ void MainWindow::switchToFontList() {
     installButton->hide();
     searchBar->show_all();
     searchButton->show_all();
+    googleFontsButton->show_all();
     gtk_header_bar_set_custom_title(headerBar->gobj(),nullptr);
 }
 
@@ -711,6 +556,7 @@ void MainWindow::fontListScroll() {
     double scrollPosition = fontsListScrollWidget->get_vadjustment()->get_value();
     for (FontListItem* listItem : *fontListItems) {
         if (listItem->hasBeenViewed) continue;
+        if (!listItem->button->get_visible()) continue;
         Gtk::Allocation allocation = listItem->button->get_allocation();
         int y = allocation.get_y();
         int windowHeight = this->get_height(); // good enough approximation
@@ -804,7 +650,7 @@ void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, g
         return;
     }
 
-    fontFamilies->push_back(self->familyData);
+    self->fontFamilies->push_back(self->familyData);
     self->loadFont();
 }
 
@@ -830,18 +676,54 @@ void MainWindow::searchUpdated() {
     Glib::signal_idle().connect(sigc::mem_fun(*this, &MainWindow::queuedfontListScrollCallback));
 }
 
+void MainWindow::openGoogleFonts() {
+    if (googleFontsWindow != NULL) {
+        googleFontsWindow->present();
+        return;
+    }
+
+    googleFontsWindow = new GoogleFontsWindow(this->fontFamilies);
+}
+
 MainWindow::~MainWindow() {
     
 }
 
 int main(int argc, char** argv) {
+    bool entryGoogleFontsValue = false;
+
+    Glib::OptionEntry entryGoogleFonts;
+    entryGoogleFonts.set_long_name("google-fonts");
+    entryGoogleFonts.set_description("Open the Google Fonts window instead of the system fonts");
+
+    Glib::OptionGroup optionGroup("options", "Options");
+    optionGroup.add_entry(entryGoogleFonts, entryGoogleFontsValue);
+    
+    Glib::OptionContext optionContext("[Filename of font]");
+    optionContext.set_main_group(optionGroup);
+
+    try {
+        optionContext.parse(argc, argv);
+    } catch (const Glib::OptionError& ex) {
+        std::cerr << ex.what() << std::endl;
+        return 1;
+    }
+
     Gtk::Main* app = new Gtk::Main();
     FcInit();
     std::string* defaultFileName = NULL;
     if (argc > 1) {
         defaultFileName = new std::string(argv[1]);
     }
-    MainWindow* win = new MainWindow(defaultFileName);
+
+    auto fonts = loadFonts();
+
+    Gtk::Window* win = NULL;
+    if (entryGoogleFontsValue) {
+        win = new GoogleFontsWindow(fonts);
+    } else {
+        win = new MainWindow(fonts, defaultFileName);
+    }
     app->run(*win);
     return 0;
 }

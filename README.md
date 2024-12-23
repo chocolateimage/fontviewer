@@ -9,27 +9,41 @@ View and install fonts on a Linux system
 
 ## Installation
 
-To add the PPA (required for the package), run the following commands:
-```bash
-sudo add-apt-repository ppa:chocolateimage/ppa
-sudo apt update
-```
 To install the package, run:
 ```bash
-sudo apt install fontviewer
+bash <(curl -s https://raw.githubusercontent.com/chocolateimage/fontviewer/refs/heads/main/install.sh)
 ```
 
+I no longer want to do PPA for now because of how shitty Launchpad is.
 
-## Building from source
+
+## Building/installing from source
 You need to have `meson` installed.
+
+Install all dependencies:
+```bash
+sudo apt install meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+```
+You may want to remove `libcurl4-gnutls-dev` from the install list if you already have libcurl-dev installed.
 
 Run this command to setup the build directory:
 ```bash
 meson setup builddir
 cd builddir
 ```
-And to compile the program run:
+
+If you want to **install**:
+```bash
+meson install
 ```
+And press "y" and enter if asked for elevated privileges, the program should now appear in the application launcher as "Fonts".
+
+---
+
+If you want to **develop**:
+
+To compile the program run:
+```bash
 meson compile
 ```
 

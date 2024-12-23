@@ -28,7 +28,6 @@
 #include "sushi-font-loader.h"
 
 #include <hb-glib.h>
-#include <math.h>
 
 enum {
   PROP_URI = 1,
@@ -52,26 +51,13 @@ struct _SushiFontWidget {
   FT_Face face;
   gchar *face_contents;
 
-  const gchar *lowercase_text;
-  const gchar *uppercase_text;
-  const gchar *punctuation_text;
-
-  gchar *sample_string;
-
-  gchar *font_name;
+  const gchar *text;
 };
 
 static GParamSpec *properties[NUM_PROPERTIES] = { NULL, };
 static guint signals[NUM_SIGNALS] = { 0, };
 
 G_DEFINE_TYPE (SushiFontWidget, sushi_font_widget, GTK_TYPE_DRAWING_AREA)
-
-#define SURFACE_SIZE 4
-//#define SECTION_SPACING 16
-#define SECTION_SPACING 0
-//#define LINE_SPACING 2
-#define LINE_SPACING 0
-
 
 static void
 text_to_glyphs (cairo_t *cr,
@@ -82,7 +68,6 @@ text_to_glyphs (cairo_t *cr,
   PangoAttribute *fallback_attr;
   PangoAttrList *attr_list;
   PangoContext *context;
-  PangoDirection base_dir;
   GList *items;
   GList *visual_items;
   FT_Face ft_face;
@@ -93,8 +78,6 @@ text_to_glyphs (cairo_t *cr,
 
   *num_glyphs = 0;
   *glyphs = NULL;
-
-  base_dir = PANGO_DIRECTION_NEUTRAL;//pango_find_base_dir (text, -1);
 
   cairo_scaled_font_t *cr_font = cairo_get_scaled_font (cr);
   ft_face = cairo_ft_scaled_font_lock_face (cr_font);
@@ -111,7 +94,7 @@ text_to_glyphs (cairo_t *cr,
   attr_list = pango_attr_list_new ();
   fallback_attr = pango_attr_fallback_new (FALSE);
   pango_attr_list_insert (attr_list, fallback_attr);
-  items = pango_itemize_with_base_dir (context, base_dir,
+  items = pango_itemize_with_base_dir (context, PANGO_DIRECTION_NEUTRAL,
                                        text, 0, strlen (text),
                                        attr_list, NULL);
   g_object_unref (context);
@@ -167,18 +150,6 @@ text_to_glyphs (cairo_t *cr,
   cairo_ft_scaled_font_unlock_face (cr_font);
 }
 
-static void
-text_extents (cairo_t *cr,
-              const char *text,
-              cairo_text_extents_t *extents)
-{
-  g_autofree cairo_glyph_t *glyphs = NULL;
-  gint num_glyphs;
-
-  text_to_glyphs (cr, text, &glyphs, &num_glyphs);
-  cairo_glyph_extents (cr, glyphs, num_glyphs, extents);
-}
-
 /* adapted from gnome-utils:font-viewer/font-view.c
  *
  * Copyright (C) 2002-2003  James Henstridge <james@daa.com.au>
@@ -190,262 +161,60 @@ static void
 draw_string (SushiFontWidget *self,
              cairo_t *cr,
              GtkBorder padding,
-	     const gchar *text,
-	     gint *pos_y)
+	     const gchar *text)
 {
   g_autofree cairo_glyph_t *glyphs = NULL;
   cairo_font_extents_t font_extents;
   cairo_text_extents_t extents;
-  GtkTextDirection text_dir;
-  gint pos_x;
+  gint pos_x, pos_y;
   gint num_glyphs;
   gint i;
-
-  text_dir = gtk_widget_get_direction (GTK_WIDGET (self));
 
   text_to_glyphs (cr, text, &glyphs, &num_glyphs);
 
   cairo_font_extents (cr, &font_extents);
   cairo_glyph_extents (cr, glyphs, num_glyphs, &extents);
 
-  if (pos_y != NULL)
-    *pos_y += font_extents.ascent + 0 +
-      extents.y_advance + LINE_SPACING / 2;
-  if (text_dir == GTK_TEXT_DIR_LTR)
-    pos_x = padding.left;
-  else {
-    pos_x = gtk_widget_get_allocated_width (GTK_WIDGET (self)) -
-      extents.x_advance - padding.right;
-  }
+  pos_y = font_extents.ascent + extents.y_advance;
+  pos_x = padding.left;
 
   for (i = 0; i < num_glyphs; i++) {
     glyphs[i].x += pos_x;
-    glyphs[i].y += *pos_y;
+    glyphs[i].y += pos_y;
   }
 
-  cairo_move_to (cr, pos_x, *pos_y);
+  cairo_move_to (cr, pos_x, pos_y);
   cairo_show_glyphs (cr, glyphs, num_glyphs);
-
-  *pos_y += LINE_SPACING / 2;
 }
 
-static gboolean
-check_font_contain_text (FT_Face face,
-                         const gchar *text)
-{
-  g_autofree gunichar *string = NULL;
-  glong len, idx;
-
-  string = g_utf8_to_ucs4_fast (text, -1, &len);
-  for (idx = 0; idx < len; idx++) {
-    gunichar c = string[idx];
-
-    if (!FT_Get_Char_Index (face, c))
-      return FALSE;
-  }
-
-  return TRUE;
-}
-
-static gchar *
-build_charlist_for_face (FT_Face face,
-                         gint *length)
-{
-  g_autoptr(GString) string = NULL;
-  gulong c;
-  guint glyph;
-  gint total_chars = 0;
-
-  string = g_string_new (NULL);
-
-  c = FT_Get_First_Char (face, &glyph);
-
-  while (glyph != 0) {
-    g_string_append_unichar (string, (gunichar) c);
-    c = FT_Get_Next_Char (face, c, &glyph);
-    total_chars++;
-  }
-
-  if (length)
-    *length = total_chars;
-
-  return g_strdup (string->str);
-}
-
-static void
-select_best_charmap (SushiFontWidget *self)
-{
-  gchar *chars;
-  gint idx, n_chars;
-
-  if (FT_Select_Charmap (self->face, FT_ENCODING_UNICODE) == 0)
-    return;
-
-  for (idx = 0; idx < self->face->num_charmaps; idx++) {
-    if (FT_Set_Charmap (self->face, self->face->charmaps[idx]) != 0)
-      continue;
-
-    chars = build_charlist_for_face (self->face, &n_chars);
-    g_free (chars);
-
-    if (n_chars > 0)
-      break;
-  }
-}
-
-static void
-build_strings_for_face (SushiFontWidget *self)
-{
-  select_best_charmap (self);
-
-  self->uppercase_text = NULL;
-  self->punctuation_text = NULL;
-  self->sample_string = NULL;
-
-  g_free (self->font_name);
-  self->font_name = sushi_get_font_name (self->face, FALSE);
-}
-
-static gint *
-build_sizes_table (FT_Face face,
-		   gint *n_sizes,
-		   gint *alpha_size,
-                   gint *title_size)
+static gint get_size_from_face(FT_Face face)
 {
   gint *sizes = NULL;
   gint i;
+  gint n_sizes;
 
   /* work out what sizes to render */
   if (FT_IS_SCALABLE (face)) {
-    *n_sizes = 14;
-    sizes = g_new (gint, *n_sizes);
-    sizes[0] = 8;
-    sizes[1] = 10;
-    sizes[2] = 12;
-    sizes[3] = 18;
-    sizes[4] = 24;
-    sizes[5] = 36;
-    sizes[6] = 48;
-    sizes[7] = 72;
-    sizes[8] = 96;
-    sizes[9] = 120;
-    sizes[10] = 144;
-    sizes[11] = 168;
-    sizes[12] = 192;
-    sizes[13] = 216;
-
-    *alpha_size = 28;
-    *title_size = 48;
+    return 28;
   } else {
-    gint alpha_diff = G_MAXINT;
-    gint title_diff = G_MAXINT;
+    gint diff = G_MAXINT;
+    gint size = G_MAXINT;
 
     /* use fixed sizes */
-    *n_sizes = face->num_fixed_sizes;
-    sizes = g_new (gint, *n_sizes);
-    *alpha_size = 0;
+    n_sizes = face->num_fixed_sizes;
+    sizes = g_new (gint, n_sizes);
+    size = 0;
 
     for (i = 0; i < face->num_fixed_sizes; i++) {
       sizes[i] = face->available_sizes[i].height;
 
-      if ((gint) (abs (sizes[i] - 24)) < alpha_diff) {
-        alpha_diff = (gint) abs (sizes[i] - 24);
-        *alpha_size = sizes[i];
-      }
-      if ((gint) (abs (sizes[i] - 24)) < title_diff) {
-        title_diff = (gint) abs (sizes[i] - 24);
-        *title_size = sizes[i];
+      if ((gint) (abs (sizes[i] - 24)) < diff) {
+        diff = (gint) abs (sizes[i] - 24);
+        size = sizes[i];
       }
     }
+    return size;
   }
-
-  return sizes;
-}
-
-static void
-sushi_font_widget_size_request (GtkWidget *drawing_area,
-                                gint *width,
-                                gint *height,
-                                gint *min_height)
-{
-  SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
-  gint pixmap_width, pixmap_height;
-  cairo_text_extents_t extents;
-  cairo_font_extents_t font_extents;
-  cairo_font_face_t *font;
-  g_autofree gint *sizes = NULL;
-  gint n_sizes, alpha_size, title_size;
-  cairo_t *cr;
-  cairo_surface_t *surface;
-  FT_Face face = self->face;
-  GtkStyleContext *context;
-  GtkStateFlags state;
-  GtkBorder padding;
-
-  if (face == NULL) {
-    if (width != NULL)
-      *width = 1;
-    if (height != NULL)
-      *height = 1;
-    if (min_height != NULL)
-      *min_height = 1;
-
-    return;
-  }
-
-  if (min_height != NULL)
-    *min_height = -1;
-
-  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                        SURFACE_SIZE, SURFACE_SIZE);
-  cr = cairo_create (surface);
-  context = gtk_widget_get_style_context (drawing_area);
-
-  state = gtk_style_context_get_state (context);
-  gtk_style_context_get_padding (context, state, &padding);
-
-  sizes = build_sizes_table (face, &n_sizes, &alpha_size, &title_size);
-
-  /* calculate size of pixmap to use */
-  pixmap_width = padding.left + padding.right;
-  pixmap_height = padding.top + padding.bottom;
-
-  font = cairo_ft_font_face_create_for_ft_face (face, 0);
-
-  if (check_font_contain_text (face, self->font_name))
-    cairo_set_font_face (cr, font);
-  else
-    cairo_set_font_face (cr, NULL);
-
-  cairo_set_font_size (cr, title_size);
-  cairo_font_extents (cr, &font_extents);
-
-  cairo_set_font_face (cr, font);
-  cairo_set_font_size (cr, alpha_size);
-  cairo_font_extents (cr, &font_extents);
-
-  if (self->lowercase_text != NULL) {
-    if (check_font_contain_text(face,self->lowercase_text)) {
-      text_extents (cr, self->lowercase_text, &extents);
-      pixmap_height += font_extents.ascent + font_extents.descent + 
-        extents.y_advance + LINE_SPACING;
-      pixmap_width = MAX (pixmap_width, extents.width + padding.left + padding.right);
-    }
-  }
-
-
-  if (min_height != NULL && *min_height == -1)
-    *min_height = pixmap_height;
-
-  if (width != NULL)
-    *width = pixmap_width;
-
-  if (height != NULL)
-    *height = pixmap_height;
-
-  cairo_destroy (cr);
-  cairo_font_face_destroy (font);
-  cairo_surface_destroy (surface);
 }
 
 static void
@@ -453,12 +222,8 @@ sushi_font_widget_get_preferred_width (GtkWidget *drawing_area,
                                        gint *minimum_width,
                                        gint *natural_width)
 {
-  gint width;
-
-  sushi_font_widget_size_request (drawing_area, &width, NULL, NULL);
-
   *minimum_width = 0;
-  *natural_width = width;
+  *natural_width = 0;
 }
 
 static void
@@ -466,12 +231,8 @@ sushi_font_widget_get_preferred_height (GtkWidget *drawing_area,
                                         gint *minimum_height,
                                         gint *natural_height)
 {
-  gint height, min_height;
-
-  sushi_font_widget_size_request (drawing_area, NULL, &height, &min_height);
-
-  *minimum_height = min_height;
-  *natural_height = height;
+  *minimum_height = 40;
+  *natural_height = 40;
 }
 
 static gboolean
@@ -479,8 +240,7 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
                         cairo_t *cr)
 {
   SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
-  g_autofree gint *sizes = NULL;
-  gint n_sizes, alpha_size, title_size, pos_y = 0;
+  gint font_size;
   cairo_font_face_t *font = NULL;
   FT_Face face = self->face;
   GtkStyleContext *context;
@@ -492,6 +252,9 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   if (face == NULL)
     return FALSE;
 
+  if (self->text == NULL)
+    return FALSE;
+
   context = gtk_widget_get_style_context (drawing_area);
   if (!gtk_style_context_has_class(context,"sushi-font-widget")) {
     gtk_style_context_add_class(context,"sushi-font-widget");
@@ -501,9 +264,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 
   allocated_width = gtk_widget_get_allocated_width (drawing_area);
   allocated_height = gtk_widget_get_allocated_height (drawing_area);
-
-  //gtk_render_background (context, cr,
-   //                      0, 0, allocated_width, allocated_height);
 
   gtk_style_context_get_color (context, state, &color);
   gtk_style_context_get_padding (context, state, &padding);
@@ -519,22 +279,20 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   );
   cairo_t* cr2 = cairo_create(cr2surface);
 
-
-  gdk_cairo_set_source_rgba (cr2, &color);
-
-  sizes = build_sizes_table (face, &n_sizes, &alpha_size, &title_size);
+  font_size = get_size_from_face (face);
 
   font = cairo_ft_font_face_create_for_ft_face (face, 0);
 
   /* draw text */
 
-  cairo_set_font_size (cr2, title_size);
-  cairo_set_font_face (cr2, font);
-  cairo_set_font_size (cr2, alpha_size);
+  cairo_set_font_face(cr2, font);
+  cairo_set_font_size(cr2, font_size);
 
+  cairo_surface_mark_dirty(cr2surface);
 
-  if (self->lowercase_text != NULL)
-    draw_string (self, cr2, padding, self->lowercase_text, &pos_y);
+  gdk_cairo_set_source_rgba(cr2, &color);
+
+  draw_string(self, cr2, padding, self->text);
 
   cairo_pattern_t* linear_gradient = cairo_pattern_create_linear(0,0,allocated_width,allocated_height);
   cairo_pattern_add_color_stop_rgba(linear_gradient,0,1,1,1,1);
@@ -547,6 +305,8 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_pattern_destroy(linear_gradient);
   cairo_destroy(cr2);
   cairo_surface_destroy(cr2surface);
+
+  cairo_font_face_destroy(font);
 
   return FALSE;
 }
@@ -565,13 +325,11 @@ font_face_async_ready_cb (GObject *object,
                                        &error);
 
   if (error != NULL) {
-    g_signal_emit (self, signals[ERROR], 0, error);
     g_print ("Can't load the font face: %s\n", error->message);
+    g_signal_emit (self, signals[ERROR], 0, error);
 
     return;
   }
-
-  build_strings_for_face (self);
 
   gtk_widget_queue_resize (GTK_WIDGET (self));
   g_signal_emit (self, signals[LOADED], 0);
@@ -648,19 +406,7 @@ sushi_font_widget_finalize (GObject *object)
 
   g_free (self->uri);
 
-  if (self->face != NULL) {
-    FT_Done_Face (self->face);
-    self->face = NULL;
-  }
-
-  g_free (self->font_name);
-  g_free (self->sample_string);
   g_free (self->face_contents);
-
-  if (self->library != NULL) {
-    FT_Done_FreeType (self->library);
-    self->library = NULL;
-  }
 
   G_OBJECT_CLASS (sushi_font_widget_parent_class)->finalize (object);
 }
@@ -743,7 +489,7 @@ sushi_font_widget_get_uri (SushiFontWidget *self)
   return self->uri;
 }
 
-void sushi_font_widget_set_text(SushiFontWidget *self, gchar* text) {
+void sushi_font_widget_set_text(SushiFontWidget *self, const gchar* text) {
 
-  self->lowercase_text = text;
+  self->text = text;
 }

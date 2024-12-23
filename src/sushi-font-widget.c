@@ -169,13 +169,12 @@ static void
 draw_string (SushiFontWidget *self,
              cairo_t *cr,
              GtkBorder padding,
-	     const gchar *text,
-	     gint *pos_y)
+	     const gchar *text)
 {
   g_autofree cairo_glyph_t *glyphs = NULL;
   cairo_font_extents_t font_extents;
   cairo_text_extents_t extents;
-  gint pos_x;
+  gint pos_x, pos_y;
   gint num_glyphs;
   gint i;
 
@@ -184,16 +183,15 @@ draw_string (SushiFontWidget *self,
   cairo_font_extents (cr, &font_extents);
   cairo_glyph_extents (cr, glyphs, num_glyphs, &extents);
 
-  if (pos_y != NULL)
-    *pos_y += font_extents.ascent + extents.y_advance;
+  pos_y = font_extents.ascent + extents.y_advance;
   pos_x = padding.left;
 
   for (i = 0; i < num_glyphs; i++) {
     glyphs[i].x += pos_x;
-    glyphs[i].y += *pos_y;
+    glyphs[i].y += pos_y;
   }
 
-  cairo_move_to (cr, pos_x, *pos_y);
+  cairo_move_to (cr, pos_x, pos_y);
   cairo_show_glyphs (cr, glyphs, num_glyphs);
 }
 
@@ -310,7 +308,7 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 {
   SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
   g_autofree gint *sizes = NULL;
-  gint font_size, pos_y = 0;
+  gint font_size;
   cairo_font_face_t *font = NULL;
   FT_Face face = self->face;
   GtkStyleContext *context;
@@ -358,12 +356,15 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_set_font_face (cr2, font);
   cairo_set_font_size (cr2, font_size);
 
+  if (self->lowercase_text != NULL)
+    draw_string (self, cr2, padding, self->lowercase_text);
+
   cairo_set_source_rgba(cr2,0,0,0,0.01);
-  cairo_rectangle(cr2,0,0,1,1);
+  cairo_rectangle(cr2,0,0,1, 1);
   cairo_fill(cr2);
 
   if (self->lowercase_text != NULL)
-    draw_string (self, cr2, padding, self->lowercase_text, &pos_y);
+    draw_string (self, cr2, padding, self->lowercase_text);
 
   cairo_pattern_t* linear_gradient = cairo_pattern_create_linear(0,0,allocated_width,allocated_height);
   cairo_pattern_add_color_stop_rgba(linear_gradient,0,1,1,1,1);

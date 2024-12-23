@@ -14,25 +14,17 @@
 #include "../pangram.hpp"
 #include "../sushi-font-widget.h"
 #include "../utils.hpp"
-#include "../mainwindow.hpp"
 
 std::string loadStringFromURI(std::string uri) {
-    auto file = Gio::File::create_for_uri(uri);
-
-    auto stream = file->read();
-
     std::string response;
 
-    char buffer[4096];
-    gsize bytes_read;
-    while (true) {
-        bytes_read = stream->read(buffer, sizeof(buffer));
-        if (bytes_read == 0) {
-            break;
-        }
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, uri.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallbackString);
+    curl_easy_perform(curl);
 
-        response.append(buffer, bytes_read);
-    }
+    curl_easy_cleanup(curl);
 
     return response;
 }
@@ -651,26 +643,14 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
     int tempFileDescriptor = mkstemp(tempname);
 
     FILE *tempFile = fdopen(tempFileDescriptor, "wb");
-    auto onlineFile = Gio::File::create_for_uri(*last);
+    
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, last->c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, tempFile);
+    curl_easy_perform(curl);
 
-    auto stream = onlineFile->read();
+    curl_easy_cleanup(curl);
 
-    gsize total_size = 0;
-
-    char buffer[4096];
-    gsize bytes_read;
-    while (true) {
-        bytes_read = stream->read(buffer, sizeof(buffer));
-        if (bytes_read == 0) {
-            break;
-        }
-
-        fwrite(buffer, bytes_read, 1, tempFile);
-        total_size += bytes_read;
-    }
-    if (total_size < 1000) {
-        std::cout << "BROKEN: " << loadData->family << std::endl;
-    }
     fflush(tempFile);
     fclose(tempFile);
 
@@ -953,20 +933,14 @@ void GoogleFontsWindow::installButtonClick() {
                 auto path = finalFile->get_path();
 
                 FILE *file = fopen(path.c_str(), "w");
-                auto onlineFile = Gio::File::create_for_uri(url);
 
-                auto stream = onlineFile->read();
+                CURL *curl = curl_easy_init();
+                curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+                curl_easy_perform(curl);
 
-                char buffer[4096];
-                gsize bytes_read;
-                while (true) {
-                    bytes_read = stream->read(buffer, sizeof(buffer));
-                    if (bytes_read == 0) {
-                        break;
-                    }
+                curl_easy_cleanup(curl);
 
-                    fwrite(buffer, bytes_read, 1, file);
-                }
                 fflush(file);
                 fclose(file);
 

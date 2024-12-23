@@ -306,6 +306,8 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_destroy(cr2);
   cairo_surface_destroy(cr2surface);
 
+  cairo_font_face_destroy(font);
+
   return FALSE;
 }
 

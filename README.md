@@ -23,6 +23,12 @@ sudo apt install fontviewer
 ## Building from source
 You need to have `meson` installed.
 
+Install all dependencies:
+```bash
+sudo apt install meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+```
+You may want to remove `libcurl4-gnutls-dev` from the install list if you already have libcurl-dev installed.
+
 Run this command to setup the build directory:
 ```bash
 meson setup builddir

@@ -871,7 +871,10 @@ void GoogleFontsWindow::installButtonClick() {
             dispatcher->emit();
         } else {
             std::thread([dispatcher] () {
-                system("fc-cache -fv");
+                int result = system("fc-cache -fv");
+                if (result != 0) {
+                    std::cerr << "Error updating cache" << std::endl;
+                }
                 dispatcher->emit();
             }).detach();
         }
@@ -974,7 +977,10 @@ void GoogleFontsWindow::installButtonClick() {
             g_object_unref(parser);
 
             if (fontInstalled) {
-                system("fc-cache -fv");
+                int result = system("fc-cache -fv");
+                if (result != 0) {
+                    std::cerr << "Error updating cache" << std::endl;
+                }
             }
             
             dispatcher->emit();

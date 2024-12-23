@@ -38,6 +38,7 @@ class GoogleFontsWindow: public Gtk::Window {
         Gtk::ScrolledWindow *swSpecimen;
         Gtk::Box *boxSpecimen;
         Gtk::Label *specimenTitle;
+        Gtk::Label *specimenAuthors;
         Gtk::Entry *specimenStylesCustomPreviewEntry;
         Gtk::Box *specimenStyles;
 
@@ -57,6 +58,7 @@ class GoogleFontsWindow: public Gtk::Window {
     private:
         std::string *_newSampleText;
         std::string *_newLicense;
+        std::string *_newAuthors;
 };
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);

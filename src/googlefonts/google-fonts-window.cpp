@@ -108,12 +108,18 @@ GoogleFontsWindow::GoogleFontsWindow() {
     boxSpecimen->set_margin_left(60);
     boxSpecimen->set_margin_right(60);
     boxSpecimen->set_margin_top(18);
-    boxSpecimen->set_spacing(12);
+    boxSpecimen->set_spacing(8);
     
     specimenTitle = new Gtk::Label();
     specimenTitle->set_alignment(Gtk::ALIGN_START);
     setFontSizeOfWidget(specimenTitle, 32);
     boxSpecimen->add(*specimenTitle);
+
+    specimenAuthors = new Gtk::Label();
+    specimenAuthors->set_alignment(Gtk::ALIGN_START);
+    specimenAuthors->set_sensitive(false);
+    specimenAuthors->set_margin_bottom(12);
+    boxSpecimen->add(*specimenAuthors);
 
     Gtk::Label *specimenStylesLabel = new Gtk::Label();
     specimenStylesLabel->set_alignment(Gtk::ALIGN_START);
@@ -354,6 +360,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
     Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
     this->stylePreviewText = new std::string("");
     this->licenseLabel->set_text("");
+    this->specimenAuthors->set_text("");
     dispatcher->connect([this, dispatcher]() {
         if (this->stylePreviewText != NULL) {
             delete this->stylePreviewText;
@@ -361,12 +368,18 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         this->stylePreviewText = this->_newSampleText;
         this->updateStylePreview();
         this->licenseLabel->set_markup(*this->_newLicense);
+        this->specimenAuthors->set_text(Glib::ustring::compose(_("Designed by %1"), *this->_newAuthors));
         this->_newSampleText = NULL;
         delete this->_newLicense;
         this->_newLicense = NULL;
+        delete this->_newAuthors;
+        this->_newAuthors = NULL;
         delete dispatcher;
     });
     std::thread([this, fontListItem, dispatcher]() {
+        gchar *twoLayerJSON;
+        gchar *threeLayerJSON;
+
         {
             JsonArray *array = json_array_new();
             JsonArray *array2 = json_array_new();
@@ -374,8 +387,22 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
             json_array_add_array_element(array, array2);
             JsonNode *root = json_node_new(JSON_NODE_ARRAY);
             json_node_set_array(root, array);
-            gchar *json = json_to_string(root, false);
-            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/SampleText", json);
+            twoLayerJSON = json_to_string(root, false);
+        }
+        {
+            JsonArray *array = json_array_new();
+            JsonArray *array2 = json_array_new();
+            JsonArray *array3 = json_array_new();
+            json_array_add_string_element(array3, fontListItem->fontFamily->family.c_str());
+            json_array_add_array_element(array2, array3);
+            json_array_add_array_element(array, array2);
+            JsonNode *root = json_node_new(JSON_NODE_ARRAY);
+            json_node_set_array(root, array);
+            threeLayerJSON = json_to_string(root, false);
+        }
+
+        {
+            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/SampleText", twoLayerJSON);
             JsonParser *parser = json_parser_new();
             json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
             JsonNode *parseRoot = json_parser_get_root(parser);
@@ -390,16 +417,35 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
             g_object_unref(parser);
         }
         {
-            JsonArray *array = json_array_new();
-            JsonArray *array2 = json_array_new();
-            JsonArray *array3 = json_array_new();
-            json_array_add_string_element(array3, fontListItem->fontFamily->family.c_str());
-            json_array_add_array_element(array2, array3);
-            json_array_add_array_element(array, array2);
-            JsonNode *root = json_node_new(JSON_NODE_ARRAY);
-            json_node_set_array(root, array);
-            gchar *json = json_to_string(root, false);
-            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/License", json);
+            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/FamilyDetail", threeLayerJSON);
+            JsonParser *parser = json_parser_new();
+            json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
+            JsonNode *parseRoot = json_parser_get_root(parser);
+            JsonArray *familyDetail = json_array_get_array_element(
+                json_array_get_array_element(
+                    json_array_get_array_element(
+                        json_node_get_array(parseRoot), 
+                        0
+                    ), 
+                    0
+                ),
+                1
+            );
+            JsonArray *authorsArray = json_array_get_array_element(familyDetail, 1);
+            int authorsLength = json_array_get_length(authorsArray);
+            std::string authors = "";
+            for (int i = 0; i < authorsLength; i++) {
+                if (i > 0) {
+                    authors += ", ";
+                }
+                JsonArray *authorInfo = json_array_get_array_element(authorsArray, i);
+                authors += json_array_get_string_element(authorInfo, 0);
+            }
+            this->_newAuthors = new std::string(authors);
+            g_object_unref(parser);
+        }
+        {
+            std::string response = sendPOSTRequest("https://fonts.google.com/$rpc/fonts.fe.catalog.actions.metadata.MetadataService/License", threeLayerJSON);
             JsonParser *parser = json_parser_new();
             json_parser_load_from_data(parser, response.c_str(), response.size(), NULL);
             JsonNode *parseRoot = json_parser_get_root(parser);

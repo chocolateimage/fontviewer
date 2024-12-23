@@ -821,6 +821,8 @@ void GoogleFontsWindow::installButtonReload() {
     specimenInstallButton->get_style_context()->remove_class("suggested-action");
     specimenInstallButton->get_style_context()->remove_class("destructive-action");
 
+    if (this->currentFontListItem == NULL) return;
+
     if (this->currentFontListItem->fontFamily->isInstalled) {
         specimenInstallButton->get_style_context()->add_class("destructive-action");
         specimenInstallButton->set_label(_("Uninstall"));

@@ -20,7 +20,7 @@ sudo apt install fontviewer
 ```
 
 
-## Building from source
+## Building/installing from source
 You need to have `meson` installed.
 
 Install all dependencies:
@@ -34,8 +34,19 @@ Run this command to setup the build directory:
 meson setup builddir
 cd builddir
 ```
-And to compile the program run:
+
+If you want to **install**:
+```bash
+meson install
 ```
+And press "y" and enter if asked for elevated privileges, the program should now appear in the application launcher as "Fonts".
+
+---
+
+If you want to **develop**:
+
+To compile the program run:
+```bash
 meson compile
 ```
 

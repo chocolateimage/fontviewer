@@ -11,7 +11,7 @@ View and install fonts on a Linux system
 
 To install the package, run:
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/chocolateimage/fontviewer/refs/heads/google-fonts/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/chocolateimage/fontviewer/refs/heads/main/install.sh)
 ```
 
 I no longer want to do PPA for now because of how shitty Launchpad is.

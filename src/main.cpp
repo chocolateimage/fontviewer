@@ -147,6 +147,7 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
     headerBar->add(*backButton);
 
     installButton = new Gtk::Button();
+    installButton->set_label("");
     installButton->signal_clicked().connect(sigc::mem_fun(*this,&MainWindow::installFontClicked));
     headerBar->pack_end(*installButton);
 

@@ -31,7 +31,7 @@ struct FontWidgetLoadData {
     SushiFontWidget* fontWidget;
 };
 
-void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list) {
+void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list, bool grouped) {
     std::map<std::string,FontFamilyData*> familyMap{};
 
     for (int i = 0; i < set->nfont; i++) {
@@ -51,15 +51,17 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list)
 
         // TO SIMPLIFY LOADING
         bool isModifiedGrouping = false;
-        if (family.rfind("Noto Sans",0) == 0) {
-            family = "Noto Sans";
-            isModifiedGrouping = true;
-        } else if (family.rfind("Noto Serif",0) == 0) {
-            family = "Noto Serif";
-            isModifiedGrouping = true;
-        } else if (family.rfind("Noto",0) == 0) {
-            family = "Noto (Other)";
-            isModifiedGrouping = true;
+        if (grouped) {
+            if (family.rfind("Noto Sans",0) == 0) {
+                family = "Noto Sans";
+                isModifiedGrouping = true;
+            } else if (family.rfind("Noto Serif",0) == 0) {
+                family = "Noto Serif";
+                isModifiedGrouping = true;
+            } else if (family.rfind("Noto",0) == 0) {
+                family = "Noto (Other)";
+                isModifiedGrouping = true;
+            }
         }
 
         FontFamilyData* familyData = NULL;
@@ -104,14 +106,14 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list)
     
 }
 
-std::vector<FontFamilyData*>* loadFonts() {
+std::vector<FontFamilyData*>* loadFonts(bool grouped) {
     auto fontFamilies = new std::vector<FontFamilyData*>();
     FcPattern* p = FcPatternCreate();
     FcObjectSet* objectSet = FcObjectSetBuild(FC_FILE,FC_INDEX,FC_FAMILY,FC_WEIGHT,FC_SLANT,FC_STYLE,NULL);
     FcFontSet* fontSet = FcFontList(NULL,p,objectSet);
     FcPatternDestroy(p);
     FcObjectSetDestroy(objectSet);
-    loadFontFamiliesFromSet(fontSet,fontFamilies);
+    loadFontFamiliesFromSet(fontSet,fontFamilies,grouped);
     FcFontSetDestroy(fontSet);
     return fontFamilies;
 }
@@ -313,7 +315,7 @@ void MainWindow::switchToFontFile(std::string fontPath) {
     int number = 0;
     FcFontSet* fontSet = FcFontSetCreate();
     FcFreeTypeQueryAll((const FcChar8*)currentFontPath->c_str(),-1,NULL,&number,fontSet);
-    loadFontFamiliesFromSet(fontSet,loadedFonts);
+    loadFontFamiliesFromSet(fontSet,loadedFonts,true);
     if (loadedFonts->empty()) {
         std::cout << "File doesn't contain any fonts" << std::endl;
         return;
@@ -683,7 +685,7 @@ void MainWindow::openGoogleFonts() {
         return;
     }
 
-    googleFontsWindow = new GoogleFontsWindow(this->fontFamilies);
+    googleFontsWindow = new GoogleFontsWindow(::loadFonts(false));
 }
 
 MainWindow::~MainWindow() {
@@ -717,12 +719,13 @@ int main(int argc, char** argv) {
         defaultFileName = new std::string(argv[1]);
     }
 
-    auto fonts = loadFonts();
 
     Gtk::Window* win = NULL;
     if (entryGoogleFontsValue) {
+        auto fonts = loadFonts(false);
         win = new GoogleFontsWindow(fonts);
     } else {
+        auto fonts = loadFonts(true);
         win = new MainWindow(fonts, defaultFileName);
     }
     app->run(*win);

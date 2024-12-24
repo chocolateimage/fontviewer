@@ -819,11 +819,12 @@ void GoogleFontsWindow::installButtonClick() {
         this->specimenInstallButton->set_label(_("Uninstalling..."));
         Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
         dispatcher->connect([this, listItem, dispatcher]() {
-            listItem->fontFamily->isInstalled = false;
             this->specimenInstallButton->set_sensitive(true);
             this->installButtonReload();
-            listItem->installedLabelWidget->hide();
-            listItem->installedIconWidget->hide();
+            if (!listItem->fontFamily->isInstalled) {
+                listItem->installedLabelWidget->hide();
+                listItem->installedIconWidget->hide();
+            }
             delete dispatcher;
         });
 
@@ -860,7 +861,8 @@ void GoogleFontsWindow::installButtonClick() {
             dialog->signal_response().connect_notify([dialog](int response){delete dialog;});
             dispatcher->emit();
         } else {
-            std::thread([dispatcher] () {
+            std::thread([dispatcher, listItem] () {
+                listItem->fontFamily->isInstalled = false;
                 int result = system("fc-cache -fv");
                 if (result != 0) {
                     std::cerr << "Error updating cache" << std::endl;

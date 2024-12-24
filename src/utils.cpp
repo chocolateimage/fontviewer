@@ -1,11 +1,14 @@
 #include <gtkmm.h>
 #include "utils.hpp"
 
-void setFontSizeOfWidget(Gtk::Widget *widget, double size) {
-    auto context = widget->get_pango_context();
-    auto description = context->get_font_description();
-    description.set_size(size * Pango::SCALE);
-    context->set_font_description(description);
+void setFontSizeOfLabel(Gtk::Label *label, double size) {
+    auto attributes = label->get_attributes();
+    if (!attributes) {
+        attributes = Pango::AttrList();
+    }
+    auto sizeAttribute = Pango::Attribute::create_attr_size(size * Pango::SCALE);
+    attributes.insert(sizeAttribute);
+    label->set_attributes(attributes);
 }
 
 const int fc_weight_to_weight(int weight) {

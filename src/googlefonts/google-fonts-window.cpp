@@ -113,7 +113,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
 
     specimenTitle = new Gtk::Label();
     specimenTitle->set_alignment(Gtk::ALIGN_START);
-    setFontSizeOfWidget(specimenTitle, 32);
+    setFontSizeOfLabel(specimenTitle, 32);
     specimenHeader->add(*specimenTitle);
 
     specimenInstallButton = new Gtk::Button();
@@ -131,7 +131,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
 
     Gtk::Label *specimenStylesLabel = new Gtk::Label();
     specimenStylesLabel->set_alignment(Gtk::ALIGN_START);
-    setFontSizeOfWidget(specimenStylesLabel, 18);
+    setFontSizeOfLabel(specimenStylesLabel, 18);
     specimenStylesLabel->set_text(_("Styles"));
     boxSpecimen->add(*specimenStylesLabel);
 
@@ -155,7 +155,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
 
     Gtk::Label *licenseTitleLabel = new Gtk::Label();
     licenseTitleLabel->set_alignment(Gtk::ALIGN_START);
-    setFontSizeOfWidget(licenseTitleLabel, 18);
+    setFontSizeOfLabel(licenseTitleLabel, 18);
     licenseTitleLabel->set_text(_("License"));
     boxLicense->add(*licenseTitleLabel);
 

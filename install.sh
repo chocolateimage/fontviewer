@@ -25,7 +25,7 @@ git clone https://github.com/chocolateimage/fontviewer.git
 cd fontviewer
 
 echo "Setting up build directory..."
-meson setup builddir -Dbuildtype=release -Ddebug=false
+meson setup builddir -Dbuildtype=release
 cd builddir
 
 echo "Building & installing, you may need to press \"y\" and enter to allow it to install"

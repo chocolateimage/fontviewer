@@ -16,7 +16,6 @@ bash <(curl -s https://raw.githubusercontent.com/chocolateimage/fontviewer/refs/
 
 I no longer want to do PPA for now because of how shitty Launchpad is.
 
-
 ## Building/installing from source
 You need to have `meson` installed.
 
@@ -58,4 +57,11 @@ To run fontviewer run:
 ```bash
 # Make sure to be in the build directory!
 ./fontviewer
+```
+
+## Uninstallation
+
+To uninstall an already installed installation, run:
+```bash
+bash <(curl -s https://raw.githubusercontent.com/chocolateimage/fontviewer/refs/heads/main/uninstall.sh)
 ```

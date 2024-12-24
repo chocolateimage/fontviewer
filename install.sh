@@ -9,6 +9,9 @@ then
 elif command -v dnf >/dev/null
 then
     sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel
+elif command -v pacman >/dev/null
+then
+    sudo pacman -S --needed git gcc meson fontconfig gtkmm3 json-glib curl
 else
     echo "Could not find a package manager, try manually installing with the \"Building/installing from source\" section in the README"
     exit 1

@@ -339,10 +339,7 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         btnBox->add(*btnHeaderBox);
 
         Gtk::Label* lblPlaceholder = new Gtk::Label();
-        auto context = lblPlaceholder->get_pango_context();
-        auto fontDescription = context->get_font_description();
-        fontDescription.set_size(26 * PANGO_SCALE);
-        context->set_font_description(fontDescription);
+        setFontSizeOfLabel(lblPlaceholder, 26);
         lblPlaceholder->set_text("");
         lblPlaceholder->set_alignment(Gtk::ALIGN_START);
         btnBox->add(*lblPlaceholder);
@@ -554,10 +551,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         box->add(*styleText);
 
         Gtk::Label* lblPlaceholder = new Gtk::Label();
-        auto context = lblPlaceholder->get_pango_context();
-        auto fontDescription = context->get_font_description();
-        fontDescription.set_size(26 * PANGO_SCALE);
-        context->set_font_description(fontDescription);
+        setFontSizeOfLabel(lblPlaceholder, 26);
         lblPlaceholder->set_text("");
         lblPlaceholder->set_alignment(Gtk::ALIGN_START);
         styleListItem->placeholderText = lblPlaceholder;

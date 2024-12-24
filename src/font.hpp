@@ -20,6 +20,7 @@ struct FontFamilyData {
 struct FontStyleData {
     FontFamilyData* family;
     std::string path; // store path in FontStyleData because some fonts have their weights/slants/etc in different files
+    std::string name;
     int weight;
     int slant;
     int index;

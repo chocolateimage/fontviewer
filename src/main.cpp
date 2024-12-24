@@ -38,16 +38,19 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list,
         FcPattern* font = set->fonts[i];
         FcChar8* familyChar;
         FcChar8* pathChar;
+        FcChar8* styleChar;
         int fcWeight;
         int slant;
         int fontIndex;
         FcPatternGetString(font,FC_FAMILY,0,&familyChar);
         FcPatternGetString(font,FC_FILE,0,&pathChar);
+        FcPatternGetString(font,FC_STYLE,0,&styleChar);
         FcPatternGetInteger(font,FC_WEIGHT,0,&fcWeight);
         FcPatternGetInteger(font,FC_SLANT,0,&slant);
         FcPatternGetInteger(font,FC_INDEX,0,&fontIndex);
 
         std::string family((char*)familyChar);
+        std::string styleName((char*)styleChar);
 
         // TO SIMPLIFY LOADING
         bool isModifiedGrouping = false;
@@ -86,6 +89,7 @@ void loadFontFamiliesFromSet(FcFontSet* set, std::vector<FontFamilyData*>* list,
         if (std::find(familyData->paths->begin(),familyData->paths->end(),styleData->path) == familyData->paths->end()) {
             familyData->paths->push_back(styleData->path);
         }
+        styleData->name = styleName;
         styleData->family = familyData;
         styleData->weight = fc_weight_to_weight(fcWeight);
         styleData->slant = fc_slant_to_slant(slant);
@@ -395,12 +399,7 @@ void MainWindow::loadFont() {
 
         Gtk::Label* lblName = new Gtk::Label();
         lblName->set_alignment(Gtk::ALIGN_START);
-        std::string nameString = std::string(_(weight_to_name(style->weight)));
-        std::string slantString = slant_to_name(style->slant);
-        if (slantString.length() > 0) {
-            nameString = nameString + " " + slantString;
-        }
-        lblName->set_text(nameString);
+        lblName->set_text(_(style->name.c_str()));
         btnHeaderBox->pack_start(*lblName,Gtk::PACK_SHRINK,0);
         
         Gtk::Label* lblWeight = new Gtk::Label();

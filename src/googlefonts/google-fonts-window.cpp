@@ -817,6 +817,16 @@ void GoogleFontsWindow::installButtonClick() {
     GoogleFontsFamilyListItem *listItem = this->currentFontListItem;
     if (listItem->fontFamily->isInstalled) {
         this->specimenInstallButton->set_label(_("Uninstalling..."));
+        Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
+        dispatcher->connect([this, listItem, dispatcher]() {
+            listItem->fontFamily->isInstalled = false;
+            this->specimenInstallButton->set_sensitive(true);
+            this->installButtonReload();
+            listItem->installedLabelWidget->hide();
+            listItem->installedIconWidget->hide();
+            delete dispatcher;
+        });
+
         std::vector<std::string> paths;
         for (FontFamilyData* fontFamily : *this->fontFamilies) {
             if (fontFamily->family == listItem->fontFamily->family) {
@@ -829,20 +839,20 @@ void GoogleFontsWindow::installButtonClick() {
         for (auto path : listItem->fontFamily->paths) {
             paths.push_back(path);
         }
-        for (auto path : paths) {
-            auto file = Gio::File::create_for_path(path);
-            file->remove();
+        try {
+            for (auto path : paths) {
+                auto file = Gio::File::create_for_path(path);
+                file->remove();
+            }
+        } catch (const Gio::Error &error) {
+            Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this,_("Error uninstalling font"),false,Gtk::MESSAGE_ERROR,Gtk::BUTTONS_OK,true);
+            dialog->set_secondary_text(error.what());
+            dialog->show_all();
+            dialog->signal_response().connect_notify([dialog](int response){delete dialog;});
+            dispatcher->emit();
+            return;
         }
         listItem->fontFamily->paths.clear();
-        Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
-        dispatcher->connect([this, listItem, dispatcher]() {
-            listItem->fontFamily->isInstalled = false;
-            this->specimenInstallButton->set_sensitive(true);
-            this->installButtonReload();
-            listItem->installedLabelWidget->hide();
-            listItem->installedIconWidget->hide();
-            delete dispatcher;
-        });
         if (paths.empty()) {
             Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*this,_("Error uninstalling font"),false,Gtk::MESSAGE_ERROR,Gtk::BUTTONS_OK,true);
             dialog->set_secondary_text("No files for font found");

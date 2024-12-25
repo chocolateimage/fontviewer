@@ -1,3 +1,10 @@
+fontviewer (1.1.0) jammy; urgency=medium
+
+  * Add Google Fonts support
+  * Fix colored fonts
+
+ -- chocolateimage <chocolateimage@protonmail.com>  Wed, 25 Dec 2024 12:06:32 +0100
+
 fontviewer (1.0.0) jammy; urgency=medium
 
   * Initial release.

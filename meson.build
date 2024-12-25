@@ -1,4 +1,4 @@
-project('fontviewer',['cpp','c'])
+project('fontviewer',['cpp','c'], version: '1.1.0')
 
 executable(
     'fontviewer',

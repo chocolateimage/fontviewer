@@ -23,3 +23,4 @@ executable(
 
 install_data('data/fontviewer.desktop', install_dir: 'share/applications')
 install_data('data/fontviewer-google-symbolic.svg', install_dir: 'share/icons/hicolor/scalable/actions')
+install_data('data/fontviewer-google-colorful.svg', install_dir: 'share/icons/hicolor/scalable/actions')

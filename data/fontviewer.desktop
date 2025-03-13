@@ -12,4 +12,4 @@ Actions=fontviewer-google;
 [Desktop Action fontviewer-google]
 Name=Google Fonts
 Exec=fontviewer --google-fonts
-Icon=fontviewer-google-symbolic
+Icon=fontviewer-google-colorful

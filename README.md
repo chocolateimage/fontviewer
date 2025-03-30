@@ -55,6 +55,8 @@ To compile the program run:
 meson compile
 ```
 
+Compiling/generating the build directory will also create the clangd autocompletions file.
+
 To run fontviewer run:
 ```bash
 # Make sure to be in the build directory!

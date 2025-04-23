@@ -1,4 +1,4 @@
-project('fontviewer',['cpp','c'], version: '1.1.0')
+project('fontviewer', ['cpp', 'c'], version: '1.1.0')
 
 executable(
     'fontviewer',
@@ -18,9 +18,15 @@ executable(
         dependency('json-glib-1.0'),
         dependency('libcurl'),
     ],
-    install: true
+    install: true,
 )
 
 install_data('data/fontviewer.desktop', install_dir: 'share/applications')
-install_data('data/fontviewer-google-symbolic.svg', install_dir: 'share/icons/hicolor/scalable/actions')
-install_data('data/fontviewer-google-colorful.svg', install_dir: 'share/icons/hicolor/scalable/actions')
+install_data(
+    'data/fontviewer-google-symbolic.svg',
+    install_dir: 'share/icons/hicolor/scalable/actions',
+)
+install_data(
+    'data/fontviewer-google-colorful.svg',
+    install_dir: 'share/icons/hicolor/scalable/actions',
+)

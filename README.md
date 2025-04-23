@@ -16,7 +16,7 @@ bash <(curl -s https://raw.githubusercontent.com/chocolateimage/fontviewer/refs/
 
 I no longer want to do PPA for now because of how shitty Launchpad is.
 
-If you have Arch you can install the AUR: `yay -S choco-fontviewer`
+If you have Arch you can install the AUR: [choco-fontviewer](https://aur.archlinux.org/packages/choco-fontviewer)
 
 ## Building/installing from source
 You need to have `meson` installed.

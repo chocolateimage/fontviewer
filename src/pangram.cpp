@@ -27,6 +27,20 @@ const char* getPreviewTextForLanguage(std::string language) {
         return "ດ້ວຍເຫດວ່າ: ການຮັບຮູ້ກຽດຕິສັກອັນມີປະຈຳຢູ່ຕົວບຸກຄົນໃນວົງສະກຸນຂອງມະນຸດທຸກໆຄົນ ແລະ ການຮັບຮູ້ສິດສະເໝີພາບ ແລະ ສະເຖຍລະພາບຂອງບຸກຄົນເຫຼົ່ານັ້ນ ປະກອບເປັນຮາກຖານຂອງສິດເສລີພາບ ຍຸດຕິທຳ ແລະ ສັນຕິພາບຂອງໂລກ.";
     } else if (language == "Taml") {
         return "கருத்துச் சுதந்திரத்துக்கும் பேச்சுச் சுதந்திரத்துக்கும் எவருக்கும் உரிமையுண்டு. இவ்வுரிமையானது தலையீடின்றிக் கருத்துகளைக் கொண்டிருத்தற்கும், எவ்வூடகம் மூலமும் எல்லைகளைப் பொருட்படுத்தாமலும் தகவலையும் கருத்துக்களையும் நாடுவதற்கும் பெறுவதற்கும் பரப்புவதற்குமான சுதந்திரத்தையும் உள்ளடக்கும்.";
+    } else if (language == "Mand") {
+        return "ࡕࡉࡁࡉࡋ ࡓࡌࡀ ࡀࡐࡀࡓࡀ ࡀࡎࡀࡓ ࡏࡅࡕࡓࡀ ࡂࡁࡓࡀ ࡍࡄࡅࡓࡀ ࡁࡓࡀࡄࡉࡌ ࡉࡀࡄࡅࡃࡉࡋࡀࡏࡉࡋ ࡓࡁࡉࡀ ࡀࡃࡌ ࡐࡀࡂࡓࡀ ࡁࡉࡋࡀ ࡊࡋࡀࡕࡀ ࡍࡉࡔࡉࡌࡕࡀ ࡀࡐࡀ ࡌࡀࡍࡃࡀ ࡖࡍࡄࡅࡓࡀ ࡄࡀࡁࡔࡀࡁࡀ ࡌࡉࡔࡀ ࡕࡀࡓࡌࡉࡃࡀ ࡊࡀࡄࡍࡀ ࡌࡀࡍࡀ ࡊࡋࡀࡕ࡙ࡀ ࡄࡉࡉࡀ ࡕࡓࡉࡎࡀࡓ ࡁࡀࡁࡉࡋ ࡓࡁࡀ ࡂࡉࡍࡆࡀ ࡔࡅࡌ ࡒࡀࡃࡅࡔࡀࡍ ࡌࡀࡓࡀ ࡀࡍࡀࡔࡀ ࡀࡎࡓࡀ ࡁࡉࡋࡀࡅࡓࡀ ࡁࡓ ࡓࡀࡁࡅࡕࡀ ࡌࡀࡑࡁࡅࡕࡀ ࡌࡀࡍࡃࡉࡉࡀࡍࡀ ࡁࡉࡕ ࡆࡀࡌࡀࡍ ࡍࡉࡎࡓࡀࡕ";
+    } else if (language == "Tavt") {
+        return "ꪋꪴ ꫛ ꪝꪮꪣ ꪼꪒ ꪣꪲ ꪁꪫꪸꪙ ꪈꪾ ꪜꪴꪙ ꪮꪮꪀ ꪒꪰꪀ ꪵꪒꪣ ꪀꪾꪚ ꪎꪱꪉ ꪭꪲꪒ ꪅꪮꪉ, ꪹꪕꪸꪉ ꪀꪱ ꪕꪳ ꪕꪱꪉ ꪜꪸꪙ ꪹꪋ ꪎꪱꪥ ꪵꪀꪉ ꪭꪲꪒ ꪅꪮꪉ, ꪀꪾꪚ ꪼꪒ ꪕꪳ ꪕꪱꪉ ꪮꪮꪀ ꪘꪱ ꫛ ꪹꪋ ꪎꪱꪥ ꪣꪲ ꪭꪳ ꪎꪱꪉ ꪭꪲꪒ ꪅꪮꪉ ꪵꪔ ꪜꪱꪉ ꪒꪱꪥ ꪋꪸꪙ ꪣꪱ ꪹꪤꪸꪒ ꪹꪎꪸꪙ ꪡꪮꪙ.";
+    } else if (language == "Thai") {
+        return "โดยที่การยอมรับศักดิ์ศรีแต่กำเนิด และสิทธิที่เท่าเทียมกันและที่ไม่อาจเพิกถอนได้ของสมาชิกทั้งมวลแห่งครอบครัวมนุษยชาติ เป็นพื้นฐานแห่งอิสรภาพ ความยุติธรรม และสันติภาพในโลก.";
+    } else if (language == "Talu") {
+        return "ᦝᧂᦑᦸᦰ ᦍᦸᧆᦑᦲᧈᦷᦢᦆᧄ ᦅᧀᦂᦱᧂᦐᦸᧂ ᦂᦱᧁ ᦙᦸᧃᦟᦱᧆᦓᧄᧉ, ᦶᦙᧈᦷᦎᦶᦂᧄᧉ ᦃᦸᧂᧈ ᦋᧄᧉ ᦶᦀᧁ ᦵᦉᧄᧉ ᦺᦜᧈ ᦺᦃ ᦋᦻᦵᦣᧀ, ᦔᦱᧂ ᦓᦲᦰ ᦋᦻ ᦈᧅ ᦺᦃ ᦺᦔ ᦡᦽᧉᦓᦲᧉ ᦑᦱᧃᦜᧂ ᦶᦎᧈ ᦂᦸᧃᧈ, ᦈᦱ ᦉᦸᧃᧈ ᦠᦹᧉ ᦵᦗᦲᧃᧈᦣᦼᧉᦡᦽᧉᦆᦱᧁᧈᦟᧂᦂᦱ.";
+    } else if (language == "Khoj") {
+        return "𑈩𑈤𑈨𑈦𑈬𑈺𑈀𑈞𑈩𑈬𑈞𑈺𑈁𑈐𑈶𑈬𑈛𑈺𑈂𑈺𑈀𑈐𑈶𑈙𑈺𑈂𑈺𑈪𑈈𑈶𑈞𑈺𑈑𑈥𑈺𑈪𑈨𑈬𑈧𑈥𑈺𑈈𑈀𑈞𑈺𑈞𑈦𑈬𑈞𑈦𑈺𑈟𑈥𑈛𑈬𑈔𑈥𑈬𑈺𑈁𑈪𑈞𑈸𑈺𑈀𑈞𑈪𑈞𑈺𑈈𑈥𑈺𑈀𑈈𑈶𑈧𑈺𑈂𑈺𑈐𑈶𑈤𑈥𑈦𑈺𑈪𑈬𑈩𑈧𑈺𑈔𑈥𑈨𑈺𑈁𑈪𑈥,𑈺𑈈𑈦𑈥𑈺𑈀𑈞𑈪𑈞𑈺𑈈𑈥𑈺𑈪𑈈𑈺𑈢𑈥𑈥𑈺𑈩𑈧𑈞𑈺𑈣𑈧𑈥𑈥𑈏𑈀𑈦𑈺𑈥𑈺𑈨𑈬𑈦𑈨𑈺𑈩𑈬𑈨𑈈𑈺𑈀𑈉𑈶𑈙𑈥𑈬𑈦𑈺𑈈𑈦𑈘𑈺𑈊𑈪𑈦𑈺𑈐𑈥𑈸";
+    } else if (language == "Cyrl") {
+        return "Вси́ бо лю́дїе родѧ́тсѧ свобо́дни и҆ ра́вни въ досто́инствѣ и҆ зако́нѣ. Ѻ҆нѝ сꙋ́ть ѡ҆дарова́ни ра́зꙋмомъ и҆ со́вѣстїю и҆ до́лжни сꙋ́ть дѣ́ѧти въ дꙋ́сѣ бра́тства.";
+    } else if (language == "Sinh") {
+        return "සෑම අවස්ථාවකදී ම නීතිය ඉදිරියේ පුද්ගලයකු වශයෙන් පිළිගනු ලැබීමේ අයිතිය සෑම කෙනෙකුම සතුය. සියල්ලන්ම නීතිය ඉදිරියෙහි එකිනෙකාට සමාන වන අතර, නීතීයේ ආරක්ෂාව ලැබීමට කිසිදු විශේෂයක් නොමැතිව.";
     } else if (language == "en_Latn" || language == "Latn") {
         return "Everyone has the right to freedom of thought, conscience and religion; this right includes freedom to change his religion or belief, and freedom, either alone or in community with others and in public or private, to manifest his religion or belief in teaching, practice, worship and observance.";
     } else if (language == "es_Latn") {
@@ -53,6 +67,8 @@ const char* getPreviewTextForLanguage(std::string language) {
         return "Considerato che il riconoscimento della dignità inerente a tutti i membri della famiglia umana e dei loro diritti, uguali ed inalienabili, costituisce il fondamento della libertà, della giustizia e della pace nel mondo;";
     } else if (language == "is_Latn") {
         return "Það ber að viðurkenna, að hver maður sé jafnborinn til virðingar og réttinda, er eigi verði af honum tekin, og er þetta undirstaða frelsis, réttlætis og friðar i heiminum.";
+    } else if (language == "ro_Latn") {
+        return "Considerând că recunoașterea demnității inerente tuturor membrilor familiei umane și a drepturilor lor egale și inalienabile constituie fundamentul libertății, dreptății și păcii în lume.";
     } else if (language == "emoji") {
         return "🥰💀✌︎🌴🐢🐐🍄⚽🍻👑📸😬👀🚨🏡🐦‍🔥🍋‍🟩🍄‍🟫🙂‍↕︎🕊︎🏆😻🌟🧿🍀🎨🍜";
     } else if (language == "symbols") {

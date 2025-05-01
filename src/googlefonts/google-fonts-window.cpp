@@ -84,6 +84,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     searchEntry->signal_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::searchUpdated));
     searchEntry->set_sensitive(false);
     headerBar->pack_end(*searchEntry);
+    this->signal_key_press_event().connect(sigc::mem_fun(*this, &GoogleFontsWindow::windowKeyPressEvent));
 
     stack = new Gtk::Stack();
     stack->set_transition_duration(200);
@@ -968,4 +969,13 @@ void GoogleFontsWindow::installButtonClick() {
             dispatcher->emit();
         }).detach();
     }
+}
+
+
+bool GoogleFontsWindow::windowKeyPressEvent(GdkEventKey* event) {
+    if (event->keyval == GDK_KEY_f && event->state & GDK_CONTROL_MASK) {
+        this->searchEntry->grab_focus();
+        return true;
+    }
+    return false;
 }

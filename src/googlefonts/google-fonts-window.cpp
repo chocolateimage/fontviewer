@@ -109,7 +109,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     boxSpecimen->set_margin_right(60);
     boxSpecimen->set_margin_top(18);
     boxSpecimen->set_spacing(8);
-    
+
     specimenHeader = new Gtk::Box();
 
     specimenTitle = new Gtk::Label();
@@ -207,7 +207,7 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
         } else {
             family->displayName = json_object_get_string_member(fontMetadata, "displayName");
         }
-        
+
         family->sortPopularity = json_object_get_int_member(fontMetadata, "popularity");
         family->sortTrending = json_object_get_int_member(fontMetadata, "defaultSort");
 
@@ -468,9 +468,9 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
             JsonArray *familyDetail = json_array_get_array_element(
                 json_array_get_array_element(
                     json_array_get_array_element(
-                        json_node_get_array(parseRoot), 
+                        json_node_get_array(parseRoot),
                         0
-                    ), 
+                    ),
                     0
                 ),
                 1
@@ -496,9 +496,9 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
             const gchar *license = json_array_get_string_element(
                 json_array_get_array_element(
                     json_array_get_array_element(
-                        json_node_get_array(parseRoot), 
+                        json_node_get_array(parseRoot),
                         0
-                    ), 
+                    ),
                     0
                 ),
                 1
@@ -640,7 +640,7 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
     int tempFileDescriptor = mkstemp(tempname);
 
     FILE *tempFile = fdopen(tempFileDescriptor, "wb");
-    
+
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, last->c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, tempFile);
@@ -673,14 +673,14 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
     SushiFontWidget* fontWidget = sushi_font_widget_new(tempFileURIG, 0);
 
     sushi_font_widget_set_text(fontWidget, (gchar*)getPreviewTextForLanguage(listItem->fontFamily->language));
-    
+
     GoogleFontsFontWidgetLoadData *loadData = new GoogleFontsFontWidgetLoadData();
     loadData->tempFileG = tempFileG;
     loadData->placeholderText = listItem->placeholderText;
     loadData->fontWidget = fontWidget;
     g_signal_connect(fontWidget,"loaded", G_CALLBACK(GoogleFontsWindow_fontFamilyLoaded), loadData);
     g_signal_connect(fontWidget,"error", G_CALLBACK(GoogleFontsWindow_fontFamilyError), loadData);
-    
+
     gtk_widget_set_has_window(GTK_WIDGET(fontWidget), false); // Needed else the preview will take over focus/hover
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     listItem->buttonBox->add(*fontWidgetMM);
@@ -704,14 +704,14 @@ void GoogleFontsWindow_loadFontFamilyInList_callback_style(GObject *source_objec
 
     listItem->fontWidget = fontWidget;
     sushi_font_widget_set_text(fontWidget, listItem->googleFontsWindow->getStylePreviewText()->c_str());
-    
+
     GoogleFontsFontWidgetLoadData *loadData = new GoogleFontsFontWidgetLoadData();
     loadData->tempFileG = tempFileG;
     loadData->placeholderText = listItem->placeholderText;
     loadData->fontWidget = fontWidget;
     g_signal_connect(fontWidget,"loaded", G_CALLBACK(GoogleFontsWindow_fontFamilyLoaded), loadData);
     g_signal_connect(fontWidget,"error", G_CALLBACK(GoogleFontsWindow_fontFamilyError), loadData);
-    
+
     gtk_widget_set_has_window(GTK_WIDGET(fontWidget), false); // Needed else the preview will take over focus/hover
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     listItem->box->add(*fontWidgetMM);
@@ -933,7 +933,7 @@ void GoogleFontsWindow::installButtonClick() {
                 if (filename.find("/") != std::string::npos) {
                     continue;
                 }
-                
+
                 auto finalFile = fontDirectory->get_child(filename);;
                 if (finalFile->query_exists()) {
                     continue;
@@ -965,7 +965,7 @@ void GoogleFontsWindow::installButtonClick() {
                     std::cerr << "Error updating cache" << std::endl;
                 }
             }
-            
+
             dispatcher->emit();
         }).detach();
     }

@@ -1,4 +1,4 @@
-project('fontviewer', ['cpp', 'c'], version: '1.1.0')
+project('fontviewer', ['cpp', 'c'], version: '1.2.0')
 
 prefix = get_option('prefix')
 datadir = get_option('datadir')

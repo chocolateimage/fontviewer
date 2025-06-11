@@ -19,6 +19,8 @@ do
         sudo rm -f "$prefix/bin/fontviewer"
         sudo rm -f "$prefix/share/applications/fontviewer.desktop"
         sudo rm -f "$prefix/share/icons/hicolor/scalable/actions/fontviewer-google-symbolic.svg"
+        sudo rm -f "$prefix/share/icons/hicolor/scalable/actions/fontviewer-google-colorful.svg"
+        sudo rm -f "$prefix/share/locale/de/LC_MESSAGES/fontviewer.mo"
     fi
 done
 

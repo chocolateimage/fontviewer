@@ -5,13 +5,13 @@ set -e
 echo "Installing dependencies..."
 if command -v apt >/dev/null
 then
-    sudo apt install git g++ meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+    sudo apt install git g++ meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev gettext
 elif command -v dnf >/dev/null
 then
-    sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel
+    sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel gettext
 elif command -v pacman >/dev/null
 then
-    sudo pacman -S --needed git gcc meson fontconfig gtkmm3 json-glib curl
+    sudo pacman -S --needed git gcc meson fontconfig gtkmm3 json-glib curl gettext
 else
     echo "Could not find a package manager, try manually installing with the \"Building/installing from source\" section in the README"
     exit 1

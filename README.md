@@ -24,13 +24,13 @@ You need to have `meson` installed.
 Install all dependencies:
 ```bash
 # Debian/Ubuntu (apt)
-sudo apt install meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev
+sudo apt install meson pkg-config libfontconfig-dev libgtkmm-3.0-dev libjson-glib-dev libcurl4-gnutls-dev gettext
 
 # Fedora (dnf)
-sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel
+sudo dnf install git g++ meson pkg-config fontconfig-devel gtkmm3.0-devel json-glib-devel libcurl-devel gettext
 
 # Arch Linux (pacman)
-sudo pacman -S --needed git gcc meson fontconfig gtkmm3 json-glib curl
+sudo pacman -S --needed git gcc meson fontconfig gtkmm3 json-glib curl gettext
 ```
 You may want to remove `libcurl4-gnutls-dev` from the install list if you already have libcurl-dev installed.
 

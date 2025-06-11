@@ -11,7 +11,8 @@ Build-Depends:
   libcairomm-1.0-dev,
   libjson-glib-dev,
   libcurl4-gnutls-dev,
-  debhelper
+  debhelper,
+  gettext
 
 
 Package: fontviewer

@@ -1,5 +1,10 @@
 project('fontviewer', ['cpp', 'c'], version: '1.1.0')
 
+prefix = get_option('prefix')
+datadir = get_option('datadir')
+
+subdir('po')
+
 executable(
     'fontviewer',
     [
@@ -19,6 +24,7 @@ executable(
         dependency('libcurl'),
     ],
     install: true,
+    cpp_args: ['-DDATADIR="' + join_paths(prefix, datadir) + '"']
 )
 
 install_data('data/fontviewer.desktop', install_dir: 'share/applications')

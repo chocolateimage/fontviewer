@@ -1,0 +1,101 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the fontviewer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fontviewer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-11 20:08+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/main.cpp:147
+msgid "All Fonts"
+msgstr ""
+
+#: src/main.cpp:172
+msgid "Fonts"
+msgstr ""
+
+#: src/main.cpp:216
+msgid "%1 different files"
+msgstr ""
+
+#: src/main.cpp:218
+msgid "Styles are combined into one single font."
+msgstr ""
+
+#: src/main.cpp:244 src/googlefonts/google-fonts-window.cpp:321
+msgid "%1 styles"
+msgstr ""
+
+#: src/main.cpp:284 src/googlefonts/google-fonts-window.cpp:140
+msgid "Enter text to preview in the font"
+msgstr ""
+
+#: src/main.cpp:350 src/googlefonts/google-fonts-window.cpp:327
+msgid "Installed"
+msgstr ""
+
+#: src/main.cpp:354 src/googlefonts/google-fonts-window.cpp:808
+msgid "Install"
+msgstr ""
+
+#: src/main.cpp:580 src/googlefonts/google-fonts-window.cpp:871
+msgid "Installing..."
+msgstr ""
+
+#: src/main.cpp:644
+msgid "Unknown error occured"
+msgstr ""
+
+#: src/main.cpp:647
+msgid "Error installing font"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:83
+msgid "Search..."
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:136
+msgid "Styles"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:148
+msgid "Specimen"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:160
+#: src/googlefonts/google-fonts-window.cpp:169
+msgid "License"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:415
+msgid "Designed by %1"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:667
+#: src/googlefonts/google-fonts-window.cpp:697
+msgid "Error loading"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:805
+msgid "Uninstall"
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:816
+msgid "Uninstalling..."
+msgstr ""
+
+#: src/googlefonts/google-fonts-window.cpp:846
+#: src/googlefonts/google-fonts-window.cpp:855
+msgid "Error uninstalling font"
+msgstr ""

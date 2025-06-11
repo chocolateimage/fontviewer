@@ -692,6 +692,11 @@ MainWindow::~MainWindow() {
 }
 
 int main(int argc, char** argv) {
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, DATADIR "/locale");
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    textdomain(GETTEXT_PACKAGE);
+
     bool entryGoogleFontsValue = false;
 
     Glib::OptionEntry entryGoogleFonts;

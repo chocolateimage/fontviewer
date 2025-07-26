@@ -657,7 +657,23 @@ void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, g
         return;
     }
 
-    self->fontFamilies->push_back(self->familyData);
+    bool addedToExisting = false;
+    for (FontFamilyData* family : *self->fontFamilies) {
+        if (family->family == self->familyData->family) {
+            addedToExisting = true;
+            for (FontStyleData* style : *self->familyData->styles) {
+                if (familyContainsStyle(family, style)) continue;
+
+                family->styles->push_back(style);
+            }
+            break;
+        }
+    }
+
+    if (!addedToExisting) {
+        self->fontFamilies->push_back(self->familyData);
+    }
+
     self->loadFont();
 }
 

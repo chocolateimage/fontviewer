@@ -332,6 +332,16 @@ void MainWindow::switchToFontFile(std::string fontPath) {
     loadFont();
 }
 
+bool familyContainsStyle(FontFamilyData* family, FontStyleData* style) {
+    for (FontStyleData* familyStyle : *family->styles) {
+        if (familyStyle->weight == style->weight && familyStyle->slant == style->slant) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void MainWindow::loadFont() {
     stack->set_visible_child("view");
     backButton->show();
@@ -340,12 +350,21 @@ void MainWindow::loadFont() {
     googleFontsButton->hide();
 
     bool isInstalled = false;
+
     for (FontFamilyData* fontFamilyData : *fontFamilies) {
         if (fontFamilyData->family == familyData->family) {
             isInstalled = true;
+            
+            for (FontStyleData* fontStyle : *familyData->styles) {
+                if (!familyContainsStyle(fontFamilyData, fontStyle)) {
+                    isInstalled = false;
+                    break;
+                }
+            }
             break;
         }
     }
+
     if (isInstalled) {
         installButton->set_label(_("Installed"));
         installButton->set_sensitive(false);

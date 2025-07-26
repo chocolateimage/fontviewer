@@ -605,48 +605,34 @@ void MainWindow::installFontClicked() {
 
 void MainWindow_installFontTask(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
     MainWindow* self = (MainWindow*)task_data;
-    std::string userDataDir = g_get_user_data_dir();
 
-    FcStrList* fontDirs = FcConfigGetFontDirs(NULL);
-    FcChar8* fontDirPath;
+    std::string userDataDir = Glib::get_user_data_dir();
+    std::string fontDirPath = userDataDir + "/fonts";
 
-    GFile* fontDirFile = NULL;
+    auto fontDir = Gio::File::create_for_path(fontDirPath);
 
-
-    while ((fontDirPath = FcStrListNext(fontDirs)) != NULL) {
-        std::string fontDirPathStr((char*)fontDirPath);
-        if (fontDirPathStr.rfind(userDataDir,0) == 0) {
-            fontDirFile = g_file_new_for_path((char*)fontDirPath);
-            break;
-        }
-    }
-
-    if (fontDirFile == NULL) {
-        g_task_return_boolean(task,false);
-        return;
-    }
-
-    GError* error = NULL;
-
-    if (!g_file_query_exists(fontDirFile,NULL)) {
-        g_file_make_directory_with_parents(fontDirFile,NULL,&error);
-        if (error != NULL) {
-            g_task_return_error(task,error);
+    if (!fontDir->query_exists()) {
+        try {
+            fontDir->make_directory_with_parents();
+        } catch (Glib::Error& error) {
+            g_task_return_error(task, g_error_copy(error.gobj()));
             return;
         }
     }
 
-    GFile* originalFile = g_file_new_for_path(self->currentFontPath->c_str());
-    char* basename = g_file_get_basename(originalFile);
-    GFile* finalFile = g_file_get_child(fontDirFile,basename);
-    if (g_file_query_exists(finalFile,NULL)) {
+    auto originalFile = Gio::File::create_for_path(*self->currentFontPath);
+    std::string basename = originalFile->get_basename();
+    auto finalFile = fontDir->get_child(basename);
+
+    if (finalFile->query_exists()) {
         g_task_return_boolean(task,false);
         return;
     }
 
-    g_file_copy(originalFile,finalFile,G_FILE_COPY_NONE,cancellable,NULL,NULL,&error);
-    if (error != NULL) {
-        g_task_return_error(task,error);
+    try {
+        originalFile->copy(finalFile, Gio::File::SlotFileProgress(), Glib::wrap(cancellable), Gio::FILE_COPY_NONE);
+    } catch (Glib::Error& error) {
+        g_task_return_error(task, g_error_copy(error.gobj()));
         return;
     }
 

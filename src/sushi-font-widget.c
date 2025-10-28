@@ -32,6 +32,8 @@
 enum {
   PROP_URI = 1,
   PROP_FACE_INDEX,
+  PROP_BYTES,
+  PROP_BYTE_COUNT,
   NUM_PROPERTIES
 };
 
@@ -46,6 +48,8 @@ struct _SushiFontWidget {
 
   gchar *uri;
   gint face_index;
+  gchar *bytes;
+  gint byte_count;
 
   FT_Library library;
   FT_Face face;
@@ -335,14 +339,39 @@ font_face_async_ready_cb (GObject *object,
   g_signal_emit (self, signals[LOADED], 0);
 }
 
+void sushi_font_widget_load_from_bytes(SushiFontWidget *self) {
+  FT_Error ft_error;
+  FT_Face ft_face;
+
+  ft_error = FT_New_Memory_Face (self->library,
+                                 (const FT_Byte *) self->bytes,
+                                 (FT_Long) self->byte_count,
+                                 self->face_index,
+                                 &ft_face);
+
+  if (ft_error != 0) {
+    fprintf(stderr, "Unable to read font face from memory: %d\n", ft_error);
+    return;
+  }
+
+  self->face = ft_face;
+
+  gtk_widget_queue_resize (GTK_WIDGET (self));
+  g_signal_emit (self, signals[LOADED], 0);
+}
+
 void
 sushi_font_widget_load (SushiFontWidget *self)
 {
-  sushi_new_ft_face_from_uri_async (self->library,
-                                    self->uri,
-                                    self->face_index,
-                                    font_face_async_ready_cb,
-                                    self);
+  if (self->bytes == NULL) {
+    sushi_new_ft_face_from_uri_async (self->library,
+                                      self->uri,
+                                      self->face_index,
+                                      font_face_async_ready_cb,
+                                      self);
+  } else {
+    sushi_font_widget_load_from_bytes(self);
+  }
 }
 
 static void
@@ -385,13 +414,18 @@ sushi_font_widget_set_property (GObject *object,
                                GParamSpec *pspec)
 {
   SushiFontWidget *self = SUSHI_FONT_WIDGET (object);
-
   switch (prop_id) {
   case PROP_URI:
     self->uri = g_value_dup_string (value);
     break;
   case PROP_FACE_INDEX:
     self->face_index = g_value_get_int (value);
+    break;
+  case PROP_BYTES:
+    self->bytes = g_value_get_pointer(value);
+    break;
+  case PROP_BYTE_COUNT:
+    self->byte_count = g_value_get_int(value);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -445,6 +479,15 @@ sushi_font_widget_class_init (SushiFontWidgetClass *klass)
                       "Face index", "Face index",
                       0, G_MAXINT,
                       0, G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+  properties[PROP_BYTES] =
+    g_param_spec_pointer ("bytes",
+                      "Bytes", "Bytes",
+                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+  properties[PROP_BYTE_COUNT] =
+    g_param_spec_int ("byte-count",
+                      "Byte count", "Byte count",
+                      0, G_MAXINT,
+                      0, G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
 
   signals[LOADED] =
     g_signal_new ("loaded",
@@ -469,6 +512,16 @@ sushi_font_widget_new (const gchar *uri, gint face_index)
 {
   return g_object_new (SUSHI_TYPE_FONT_WIDGET,
                        "uri", uri,
+                       "face-index", face_index,
+                       NULL);
+}
+
+SushiFontWidget *
+sushi_font_widget_new_from_bytes (const gchar *bytes, gint byte_count, gint face_index)
+{
+  return g_object_new (SUSHI_TYPE_FONT_WIDGET,
+                       "bytes", bytes,
+                       "byte-count", byte_count,
                        "face-index", face_index,
                        NULL);
 }

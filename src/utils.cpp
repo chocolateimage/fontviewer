@@ -106,6 +106,11 @@ size_t curlWriteCallbackString(void* ptr, size_t size, size_t nmemb, std::string
     return size * nmemb;
 }
 
+size_t curlWriteCallbackBuffer(void* ptr, size_t size, size_t nmemb, std::vector<uint8_t> *data) {
+    data->insert(data->end(), (uint8_t*)ptr, (uint8_t*)ptr + size * nmemb);
+    return size * nmemb;
+}
+
 void replaceAllInString(std::string *str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
     while((start_pos = str->find(from, start_pos)) != std::string::npos) {

@@ -40,6 +40,7 @@ G_DECLARE_FINAL_TYPE (SushiFontWidget, sushi_font_widget,
                       GtkDrawingArea)
 
 SushiFontWidget *sushi_font_widget_new (const gchar *uri, gint face_index);
+SushiFontWidget *sushi_font_widget_new_from_bytes (const gchar *bytes, gint byte_count, gint face_index);
 
 FT_Face sushi_font_widget_get_ft_face (SushiFontWidget *self);
 

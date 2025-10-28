@@ -105,9 +105,3 @@ struct GoogleFontsFamilyLoadData {
     std::string family;
     const char *temppath;
 };
-
-struct GoogleFontsFontWidgetLoadData {
-    GFile* tempFileG;
-    Gtk::Label* placeholderText;
-    SushiFontWidget* fontWidget;
-};

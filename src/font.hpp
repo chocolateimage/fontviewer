@@ -3,7 +3,9 @@
 #include <string>
 #include <vector>
 #include <sys/stat.h>
-#include <gtkmm.h>
+#include <gtkmm/widget.h>
+#include <gtkmm/button.h>
+#include <gtkmm/label.h>
 #include <glib/gi18n.h>
 #include <fontconfig/fontconfig.h>
 #include "sushi-font-widget.h"

@@ -4,8 +4,13 @@
 #include <map>
 #include <algorithm>
 #include <sys/stat.h>
-#include <gtkmm.h>
+#include <gtkmm/cssprovider.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/messagedialog.h>
+#include <gtkmm/main.h>
 #include <glib/gi18n.h>
+#include <glibmm/main.h>
+#include <glibmm/miscutils.h>
 #include <fontconfig/fontconfig.h>
 #include <locale.h>
 #include FT_FREETYPE_H

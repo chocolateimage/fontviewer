@@ -1,6 +1,14 @@
 #pragma once
-#include <gtkmm.h>
 #include <vector>
+#include <gtkmm/widget.h>
+#include <gtkmm/window.h>
+#include <gtkmm/headerbar.h>
+#include <gtkmm/box.h>
+#include <gtkmm/notebook.h>
+#include <gtkmm/searchentry.h>
+#include <gtkmm/spinner.h>
+#include <gtkmm/stack.h>
+#include <gtkmm/scrolledwindow.h>
 #include "family.hpp"
 #include "../font.hpp"
 #include "../sushi-font-widget.h"

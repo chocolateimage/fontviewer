@@ -1,4 +1,4 @@
-#include <gtkmm.h>
+#include <gtkmm/label.h>
 #include "utils.hpp"
 
 void setFontSizeOfLabel(Gtk::Label *label, double size) {

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <gtkmm.h>
+#include <cstddef>
+#include <gtkmm/label.h>
 
 void setFontSizeOfLabel(Gtk::Label *label, double size);
 

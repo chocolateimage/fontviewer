@@ -1,7 +1,14 @@
 #pragma once
 
 #include <string>
-#include <gtkmm.h>
+#include <vector>
+#include <gtkmm/window.h>
+#include <gtkmm/searchbar.h>
+#include <gtkmm/headerbar.h>
+#include <gtkmm/togglebutton.h>
+#include <gtkmm/button.h>
+#include <gtkmm/label.h>
+#include <gtkmm/scrolledwindow.h>
 #include "font.hpp"
 #include "googlefonts/google-fonts-window.hpp"
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-#include <gtkmm.h>
+#include <vector>
+#include <gtkmm/button.h>
 
 class GoogleFontsStyle;
 

@@ -1,8 +1,12 @@
 #include "google-fonts-window.hpp"
 #include "src/googlefonts/family.hpp"
 #include <json-glib/json-glib.h>
-#include <gtkmm.h>
-#include <giomm.h>
+#include <gtkmm/cssprovider.h>
+#include <gtkmm/separator.h>
+#include <gtkmm/messagedialog.h>
+#include <glibmm/dispatcher.h>
+#include <glibmm/uriutils.h>
+#include <glibmm/miscutils.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>

@@ -20,6 +20,7 @@ std::string loadStringFromURI(std::string uri) {
 
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, uri.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Firefox/50");
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallbackString);
     curl_easy_perform(curl);
@@ -573,6 +574,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
 
         GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
         loadData->family = familyLoadText;
+        loadData->language = style->family->language;
         styleListItem->loadData = loadData;
 
         GCancellable* cancellable = g_cancellable_new();
@@ -593,16 +595,21 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
     std::regex sourceRegex(R"(src:\s*url\(([^)]+)\))");
     std::string css;
     std::smatch match;
+    std::string previewText = getPreviewTextForLanguage(loadData->language);
+    std::string cssUri = "https://fonts.googleapis.com/css2?family="
+                        + Glib::uri_escape_string(loadData->family, "", false)
+                        + "&directory=3&display=block&text="
+                        + Glib::uri_escape_string(previewText + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnoprqtstuvwxyz", "", false);
 
     try {
         /*
-            Returns TTF with no browser user agent
+            Returns WOFF2
 
             Default: Roboto
             Normal: Roboto:ital,wght@0,100 AND Roboto:wght@100
             Italic: Roboto:ital,wght@1,100
         */
-        css = loadStringFromURI("https://fonts.googleapis.com/css2?family="+Glib::uri_escape_string(loadData->family)+"&directory=3&display=block");
+        css = loadStringFromURI(cssUri);
     } catch (Gio::Error &error) {
         std::cerr << "An error has occured while loading the font " << loadData->family << ": " << error.what() << std::endl;
         g_task_return_new_error_literal(task, g_quark_from_static_string("Error"), 1, "Error");
@@ -626,28 +633,26 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
 
     curl_easy_cleanup(curl);
 
-    SushiFontWidget* fontWidget = sushi_font_widget_new_from_bytes((gchar*)data->data(), data->size(), 0);
-
-    g_task_return_pointer(task, fontWidget, NULL);
+    g_task_return_pointer(task, data, NULL);
 }
 
 
 void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     GoogleFontsFamilyListItem* listItem = (GoogleFontsFamilyListItem*)user_data;
     GError* error = NULL;
-    SushiFontWidget* fontWidget = (SushiFontWidget*)g_task_propagate_pointer(G_TASK(res), &error);
+    std::vector<uint8_t>* data = (std::vector<uint8_t>*)g_task_propagate_pointer(G_TASK(res), &error);
     if (error != NULL) {
         listItem->placeholderText->set_text(_("Error loading"));
         return;
     }
 
+    SushiFontWidget* fontWidget = sushi_font_widget_new_from_bytes((gchar*)data->data(), data->size(), 0);
+
     sushi_font_widget_set_text(fontWidget, (gchar*)getPreviewTextForLanguage(listItem->fontFamily->language));
 
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     listItem->buttonBox->add(*fontWidgetMM);
-
-    gtk_widget_set_has_window(GTK_WIDGET(fontWidget), false); // Needed else the preview will take over focus/hover
-    gtk_widget_show(GTK_WIDGET(fontWidget));
+    fontWidgetMM->show();
 
     delete listItem->placeholderText;
 }
@@ -655,22 +660,22 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
 void GoogleFontsWindow_loadFontFamilyInList_callback_style(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     GoogleFontsStyleListItem* listItem = (GoogleFontsStyleListItem*)user_data;
     GError* error = NULL;
-    SushiFontWidget* fontWidget = (SushiFontWidget*)g_task_propagate_pointer(G_TASK(res), &error);
+    std::vector<uint8_t>* data = (std::vector<uint8_t>*)g_task_propagate_pointer(G_TASK(res), &error);
     if (error != NULL) {
         listItem->placeholderText->set_text(_("Error loading"));
         return;
     }
+
+    delete listItem->placeholderText;
+
+    SushiFontWidget* fontWidget = sushi_font_widget_new_from_bytes((gchar*)data->data(), data->size(), 0);
 
     listItem->fontWidget = fontWidget;
     sushi_font_widget_set_text(fontWidget, listItem->googleFontsWindow->getStylePreviewText()->c_str());
 
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     listItem->box->add(*fontWidgetMM);
-
-    gtk_widget_set_has_window(GTK_WIDGET(fontWidget), false); // Needed else the preview will take over focus/hover
-    gtk_widget_show(GTK_WIDGET(fontWidget));
-
-    delete listItem->placeholderText;
+    fontWidgetMM->show();
 }
 
 
@@ -688,6 +693,7 @@ void GoogleFontsWindow::fontListScroll() {
 
             GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
             loadData->family = listItem->fontFamily->family;
+            loadData->language = listItem->fontFamily->language;
             listItem->loadData = loadData;
             GCancellable* cancellable = g_cancellable_new();
             GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFontFamilyInList_callback,listItem);

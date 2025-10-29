@@ -175,18 +175,18 @@ draw_string (SushiFontWidget *self,
   gint i;
 
   text_to_glyphs (cr, text, &glyphs, &num_glyphs);
-
+  
   cairo_font_extents (cr, &font_extents);
   cairo_glyph_extents (cr, glyphs, num_glyphs, &extents);
-
+  
   pos_y = font_extents.ascent + extents.y_advance;
   pos_x = padding.left;
-
+  
   for (i = 0; i < num_glyphs; i++) {
     glyphs[i].x += pos_x;
     glyphs[i].y += pos_y;
   }
-
+  
   cairo_move_to (cr, pos_x, pos_y);
   cairo_show_glyphs (cr, glyphs, num_glyphs);
 }
@@ -282,20 +282,20 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
     allocated_height
   );
   cairo_t* cr2 = cairo_create(cr2surface);
-
+  
   font_size = get_size_from_face (face);
-
+  
   font = cairo_ft_font_face_create_for_ft_face (face, 0);
 
   /* draw text */
 
   cairo_set_font_face(cr2, font);
   cairo_set_font_size(cr2, font_size);
-
+  
   cairo_surface_mark_dirty(cr2surface);
-
+  
   gdk_cairo_set_source_rgba(cr2, &color);
-
+  
   draw_string(self, cr2, padding, self->text);
 
   cairo_pattern_t* linear_gradient = cairo_pattern_create_linear(0,0,allocated_width,allocated_height);
@@ -384,6 +384,7 @@ sushi_font_widget_init (SushiFontWidget *self)
 
   gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (self)),
                                GTK_STYLE_CLASS_VIEW);
+  gtk_widget_set_has_window(GTK_WIDGET(self), FALSE);
 }
 
 static void

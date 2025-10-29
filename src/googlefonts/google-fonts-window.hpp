@@ -103,5 +103,5 @@ struct GoogleFontsStyleListItem {
 
 struct GoogleFontsFamilyLoadData {
     std::string family;
-    const char *temppath;
+    std::string language;
 };

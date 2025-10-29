@@ -621,12 +621,12 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
         return;
     }
 
-    auto last = new std::string(match[match.size() - 1].str());
+    std::string last = match[match.size() - 1].str();
 
     std::vector<uint8_t>* data = new std::vector<uint8_t>();
 
     CURL *curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_URL, last->c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, last.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallbackBuffer);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
     curl_easy_perform(curl);

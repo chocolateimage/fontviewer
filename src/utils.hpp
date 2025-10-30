@@ -13,4 +13,4 @@ const char* slant_to_name(int slant);
 size_t curlWriteCallbackString(void* ptr, size_t size, size_t nmemb, std::string *data);
 size_t curlWriteCallbackBuffer(void* ptr, size_t size, size_t nmemb, std::vector<uint8_t> *data);
 
-void replaceAllInString(std::string *str, const std::string& from, const std::string& to);
+void replaceAllInString(std::string &str, const std::string& from, const std::string& to);

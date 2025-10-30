@@ -76,9 +76,9 @@ class GoogleFontsWindow: public Gtk::Window {
 
         GoogleFontsFamilyListItem* currentFontListItem;
     private:
-        std::string *_newSampleText;
-        std::string *_newLicense;
-        std::string *_newAuthors;
+        void loadLicense();
+        void loadFamilyDetails();
+        void loadSampleText();
 };
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);

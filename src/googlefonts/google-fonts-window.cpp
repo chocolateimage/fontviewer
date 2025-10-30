@@ -346,7 +346,7 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
 
         Gtk::Label* lblPlaceholder = new Gtk::Label();
         lblPlaceholder->set_size_request(0, 40);
-        lblPlaceholder->set_text("Loading");
+        lblPlaceholder->set_text("");
         lblPlaceholder->set_alignment(Gtk::ALIGN_START);
         btnBox->add(*lblPlaceholder);
         fontListItem->placeholderText = lblPlaceholder;

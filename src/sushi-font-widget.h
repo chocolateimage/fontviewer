@@ -44,8 +44,6 @@ SushiFontWidget *sushi_font_widget_new_from_bytes (const gchar *bytes, gint byte
 
 FT_Face sushi_font_widget_get_ft_face (SushiFontWidget *self);
 
-const gchar *sushi_font_widget_get_uri (SushiFontWidget *self);
-
 void sushi_font_widget_set_text (SushiFontWidget *self, const gchar *text);
 
 void sushi_font_widget_load (SushiFontWidget *self);

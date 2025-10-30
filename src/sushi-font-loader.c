@@ -182,31 +182,3 @@ sushi_new_ft_face_from_uri_finish (GAsyncResult *result,
 
   return create_face_from_contents (job, contents, error);
 }
-
-/**
- * sushi_get_font_name: (skip)
- *
- */
-gchar *
-sushi_get_font_name (FT_Face face,
-                     gboolean short_form)
-{
-  const char *style_name = face->style_name;
-  const char *family_name = face->family_name;
-
-  if (family_name == NULL) {
-    /* Try to get the basename of the file this was loaded from */
-    GFile *file = face->generic.data;
-    if (G_IS_FILE (file))
-      return g_file_get_basename (file);
-
-    /* Use an empty string as the last fallback */
-    return g_strdup ("");
-  }
-
-  if (style_name == NULL ||
-      (short_form && g_strcmp0 (style_name, "Regular") == 0))
-    return g_strdup (family_name);
-
-  return g_strconcat (family_name, ", ", style_name, NULL);
-}

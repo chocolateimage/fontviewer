@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <gtkmm/label.h>
 
-void setFontSizeOfLabel(Gtk::Label *label, double size);
+void setFontSizeOfLabel(Gtk::Label &label, double size);
 
 const int fc_weight_to_weight(int weight);
 const int fc_slant_to_slant(int slant);

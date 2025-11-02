@@ -1,14 +1,14 @@
 #include <gtkmm/label.h>
 #include "utils.hpp"
 
-void setFontSizeOfLabel(Gtk::Label *label, double size) {
-    auto attributes = label->get_attributes();
+void setFontSizeOfLabel(Gtk::Label &label, double size) {
+    auto attributes = label.get_attributes();
     if (!attributes) {
         attributes = Pango::AttrList();
     }
     auto sizeAttribute = Pango::Attribute::create_attr_size(size * Pango::SCALE);
     attributes.insert(sizeAttribute);
-    label->set_attributes(attributes);
+    label.set_attributes(attributes);
 }
 
 const int fc_weight_to_weight(int weight) {

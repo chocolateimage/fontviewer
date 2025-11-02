@@ -63,117 +63,94 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
         );
     this->get_style_context()->add_provider_for_screen(Gdk::Screen::get_default(),provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-    this->families = new std::vector<GoogleFontsFamily*>();
-    this->fontListItems = new std::vector<GoogleFontsFamilyListItem*>();
-    this->styleListItems = NULL;
-    this->stylePreviewText = new std::string("");
-    this->userOverridenStylePreviewText = NULL;
+    this->stylePreviewText = "";
+    this->userOverridenStylePreviewText = "";
     this->currentFontListItem = NULL;
 
     this->resize(1000, 700);
     this->set_title("Google Fonts");
 
-    headerBar = new Gtk::HeaderBar();
-    headerBar->set_title("Google Fonts");
-    headerBar->set_show_close_button();
-    headerBarCustomText = new Gtk::Label();
-    headerBarCustomText->show();
-    backButton = new Gtk::Button();
-    backButton->set_image_from_icon_name("go-previous-symbolic");
-    backButton->signal_clicked().connect(sigc::mem_fun(*this,&GoogleFontsWindow::switchToFontList));
-    headerBar->add(*backButton);
-    this->set_titlebar(*headerBar);
+    headerBar.set_title("Google Fonts");
+    headerBar.set_show_close_button();
+    headerBarCustomText.show();
+    backButton.set_image_from_icon_name("go-previous-symbolic");
+    backButton.signal_clicked().connect(sigc::mem_fun(*this,&GoogleFontsWindow::switchToFontList));
+    headerBar.add(backButton);
+    this->set_titlebar(headerBar);
 
-    searchEntry = new Gtk::SearchEntry();
-    searchEntry->set_placeholder_text(_("Search..."));
-    searchEntry->signal_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::searchUpdated));
-    searchEntry->set_sensitive(false);
-    headerBar->pack_end(*searchEntry);
+    searchEntry.set_placeholder_text(_("Search..."));
+    searchEntry.signal_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::searchUpdated));
+    searchEntry.set_sensitive(false);
+    headerBar.pack_end(searchEntry);
     this->signal_key_press_event().connect(sigc::mem_fun(*this, &GoogleFontsWindow::windowKeyPressEvent));
 
-    stack = new Gtk::Stack();
-    stack->set_transition_duration(200);
-    stack->set_transition_type(Gtk::STACK_TRANSITION_TYPE_CROSSFADE);
-    this->add(*stack);
+    stack.set_transition_duration(200);
+    stack.set_transition_type(Gtk::STACK_TRANSITION_TYPE_CROSSFADE);
+    this->add(stack);
 
-    spinner = new Gtk::Spinner();
-    spinner->start();
-    stack->add(*spinner, "loading");
+    spinner.start();
+    stack.add(spinner, "loading");
 
-    scrolledWindow = new Gtk::ScrolledWindow();
-    scrolledWindow->get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
-    familyListBox = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
-    scrolledWindow->add(*familyListBox);
-    stack->add(*scrolledWindow, "list");
+    scrolledWindow.get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
+    familyListBox.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    scrolledWindow.add(familyListBox);
+    stack.add(scrolledWindow, "list");
 
-    notebook = new Gtk::Notebook();
+    boxSpecimen.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    boxSpecimen.set_margin_left(60);
+    boxSpecimen.set_margin_right(60);
+    boxSpecimen.set_margin_top(18);
+    boxSpecimen.set_spacing(8);
 
-    swSpecimen = new Gtk::ScrolledWindow();
-    boxSpecimen = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
-    boxSpecimen->set_margin_left(60);
-    boxSpecimen->set_margin_right(60);
-    boxSpecimen->set_margin_top(18);
-    boxSpecimen->set_spacing(8);
-
-    specimenHeader = new Gtk::Box();
-
-    specimenTitle = new Gtk::Label();
-    specimenTitle->set_alignment(Gtk::ALIGN_START);
+    specimenTitle.set_alignment(Gtk::ALIGN_START);
     setFontSizeOfLabel(specimenTitle, 32);
-    specimenHeader->add(*specimenTitle);
+    specimenHeader.add(specimenTitle);
 
-    specimenInstallButton = new Gtk::Button();
-    specimenInstallButton->set_valign(Gtk::ALIGN_START);
-    specimenInstallButton->signal_clicked().connect(sigc::mem_fun(*this, &GoogleFontsWindow::installButtonClick));
-    specimenHeader->pack_end(*specimenInstallButton, Gtk::PACK_SHRINK);
+    specimenInstallButton.set_valign(Gtk::ALIGN_START);
+    specimenInstallButton.signal_clicked().connect(sigc::mem_fun(*this, &GoogleFontsWindow::installButtonClick));
+    specimenHeader.pack_end(specimenInstallButton, Gtk::PACK_SHRINK);
 
-    boxSpecimen->add(*specimenHeader);
+    boxSpecimen.add(specimenHeader);
 
-    specimenAuthors = new Gtk::Label();
-    specimenAuthors->set_alignment(Gtk::ALIGN_START);
-    specimenAuthors->set_sensitive(false);
-    specimenAuthors->set_margin_bottom(12);
-    boxSpecimen->add(*specimenAuthors);
+    specimenAuthors.set_alignment(Gtk::ALIGN_START);
+    specimenAuthors.set_sensitive(false);
+    specimenAuthors.set_margin_bottom(12);
+    boxSpecimen.add(specimenAuthors);
 
-    Gtk::Label *specimenStylesLabel = new Gtk::Label();
-    specimenStylesLabel->set_alignment(Gtk::ALIGN_START);
+    specimenStylesLabel.set_alignment(Gtk::ALIGN_START);
     setFontSizeOfLabel(specimenStylesLabel, 18);
-    specimenStylesLabel->set_text(_("Styles"));
-    boxSpecimen->add(*specimenStylesLabel);
+    specimenStylesLabel.set_text(_("Styles"));
+    boxSpecimen.add(specimenStylesLabel);
 
-    specimenStylesCustomPreviewEntry = new Gtk::Entry();
-    specimenStylesCustomPreviewEntry->set_placeholder_text(_("Enter text to preview in the font"));
-    specimenStylesCustomPreviewEntry->signal_changed().connect(sigc::mem_fun(*this, &GoogleFontsWindow::userOverridenStylePreviewTextChanged));
-    boxSpecimen->add(*specimenStylesCustomPreviewEntry);
+    specimenStylesCustomPreviewEntry.set_placeholder_text(_("Enter text to preview in the font"));
+    specimenStylesCustomPreviewEntry.signal_changed().connect(sigc::mem_fun(*this, &GoogleFontsWindow::userOverridenStylePreviewTextChanged));
+    boxSpecimen.add(specimenStylesCustomPreviewEntry);
 
-    specimenStyles = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
-    boxSpecimen->add(*specimenStyles);
+    specimenStyles.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    boxSpecimen.add(specimenStyles);
 
-    swSpecimen->add(*boxSpecimen);
-    notebook->append_page(*swSpecimen, _("Specimen"));
+    swSpecimen.add(boxSpecimen);
+    notebook.append_page(swSpecimen, _("Specimen"));
 
-    swLicense = new Gtk::ScrolledWindow();
-    boxLicense = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
-    boxLicense->set_margin_left(60);
-    boxLicense->set_margin_right(60);
-    boxLicense->set_margin_top(18);
-    boxLicense->set_spacing(12);
+    boxLicense.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    boxLicense.set_margin_left(60);
+    boxLicense.set_margin_right(60);
+    boxLicense.set_margin_top(18);
+    boxLicense.set_spacing(12);
 
-    Gtk::Label *licenseTitleLabel = new Gtk::Label();
-    licenseTitleLabel->set_alignment(Gtk::ALIGN_START);
+    licenseTitleLabel.set_alignment(Gtk::ALIGN_START);
     setFontSizeOfLabel(licenseTitleLabel, 18);
-    licenseTitleLabel->set_text(_("License"));
-    boxLicense->add(*licenseTitleLabel);
+    licenseTitleLabel.set_text(_("License"));
+    boxLicense.add(licenseTitleLabel);
 
-    licenseLabel = new Gtk::Label();
-    licenseLabel->set_alignment(Gtk::ALIGN_START);
-    licenseLabel->set_selectable(true);
-    boxLicense->add(*licenseLabel);
+    licenseLabel.set_alignment(Gtk::ALIGN_START);
+    licenseLabel.set_selectable(true);
+    boxLicense.add(licenseLabel);
 
-    swLicense->add(*boxLicense);
-    notebook->append_page(*swLicense, _("License"));
+    swLicense.add(boxLicense);
+    notebook.append_page(swLicense, _("License"));
 
-    stack->add(*notebook, "view");
+    stack.add(notebook, "view");
 
     GCancellable* cancellable = g_cancellable_new();
     GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFamilies_callback,this);
@@ -181,15 +158,15 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     g_task_run_in_thread(task,GoogleFontsWindow_loadFamilies);
 
     this->show_all();
-    backButton->hide();
+    backButton.hide();
 }
 
 void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
     GoogleFontsWindow *self = (GoogleFontsWindow*)task_data;
     std::string response = loadStringFromURI("https://fonts.google.com/metadata/fonts");
 
-    JsonParser *parser = json_parser_new();
-    GError *error = NULL;
+    g_autoptr(JsonParser) parser = json_parser_new();
+    g_autoptr(GError) error = NULL;
 
     json_parser_load_from_data(parser, response.c_str(), response.length(), &error);
 
@@ -204,7 +181,7 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
 
     int length = json_array_get_length(familyMetadataList);
     for (int i = 0; i < length; i++) {
-        GoogleFontsFamily *family = new GoogleFontsFamily();
+        auto family = std::make_shared<GoogleFontsFamily>();
         JsonObject *fontMetadata = json_array_get_object_element(familyMetadataList, i);
         family->family = json_object_get_string_member(fontMetadata, "family");
         if (json_object_get_null_member(fontMetadata, "displayName")) {
@@ -250,7 +227,7 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
         for (GList *j = stylesList; j != NULL; j = j->next) {
             std::string styleName = std::string((const gchar*)j->data);
 
-            GoogleFontsStyle *style = new GoogleFontsStyle();
+            auto style = std::make_shared<GoogleFontsStyle>();
             style->family = family;
             if (styleName.at(styleName.length() - 1) == 'i') {
                 style->slant = 2;
@@ -272,10 +249,8 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
             }
         }
 
-        self->families->push_back(family);
+        self->families.push_back(family);
     }
-
-    g_object_unref(parser);
 
     g_task_return_boolean(task, true);
 }
@@ -283,25 +258,24 @@ void GoogleFontsWindow_loadFamilies(GTask *task, gpointer source_object, gpointe
 void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
     GoogleFontsWindow* self = (GoogleFontsWindow*)user_data;
 
-    self->stack->set_visible_child("list");
+    self->stack.set_visible_child("list");
 
-    std::sort(self->families->begin(), self->families->end(), [](GoogleFontsFamily *a, GoogleFontsFamily *b) {
+    std::sort(self->families.begin(), self->families.end(), [](std::shared_ptr<GoogleFontsFamily> a, std::shared_ptr<GoogleFontsFamily> b) {
         return a->sortTrending < b->sortTrending;
     });
 
-    for (auto i : *self->families) {
-
-        GoogleFontsFamilyListItem* fontListItem = new GoogleFontsFamilyListItem();
+    for (auto i : self->families) {
+        auto fontListItem = std::make_shared<GoogleFontsFamilyListItem>();
         fontListItem->fontFamily = i;
         fontListItem->hasBeenViewed = false;
 
-        Gtk::Button *btn = new Gtk::Button();
+        Gtk::Button* btn = Gtk::make_managed<Gtk::Button>();
         fontListItem->button = btn;
 
         btn->set_relief(Gtk::RELIEF_NONE);
         btn->signal_clicked().connect(sigc::bind(sigc::mem_fun(*self, &GoogleFontsWindow::switchToFontFamily), fontListItem));
 
-        Gtk::VBox* btnBox = new Gtk::VBox();
+        Gtk::Box *btnBox = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_VERTICAL);
         fontListItem->buttonBox = btnBox;
         btnBox->set_margin_left(8);
         btnBox->set_margin_right(8);
@@ -309,17 +283,17 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         btnBox->set_margin_bottom(4);
         btnBox->set_spacing(8);
 
-        Gtk::HBox* btnHeaderBox = new Gtk::HBox();
+        Gtk::Box* btnHeaderBox = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
         btnHeaderBox->set_spacing(4);
 
-        Gtk::Label* btnLabel = new Gtk::Label();
+        Gtk::Label* btnLabel = Gtk::make_managed<Gtk::Label>();
         btnLabel->set_alignment(Gtk::ALIGN_START);
         btnLabel->set_text(i->displayName);
         btnLabel->get_style_context()->add_class("display-name");
         btnHeaderBox->pack_start(*btnLabel,Gtk::PACK_SHRINK,0);
         
         if (i->styles.size() > 1) {
-            Gtk::Label* btnStyleCount = new Gtk::Label();
+            Gtk::Label* btnStyleCount = Gtk::make_managed<Gtk::Label>();
             btnStyleCount->set_sensitive(false);
             btnStyleCount->get_style_context()->add_class("disabled");
             btnStyleCount->set_alignment(Gtk::ALIGN_START);
@@ -327,7 +301,7 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
             btnHeaderBox->pack_start(*btnStyleCount,Gtk::PACK_SHRINK,0);
         }
         
-        Gtk::Label* installedLabel = new Gtk::Label();
+        Gtk::Label* installedLabel = Gtk::make_managed<Gtk::Label>();
         installedLabel->set_valign(Gtk::ALIGN_CENTER);
         installedLabel->set_text(_("Installed"));
         installedLabel->set_sensitive(false);
@@ -335,7 +309,7 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         btnHeaderBox->pack_end(*installedLabel,Gtk::PACK_SHRINK,0);
         fontListItem->installedLabelWidget = installedLabel;
 
-        Gtk::Image *installedIcon = new Gtk::Image();
+        Gtk::Image *installedIcon = Gtk::make_managed<Gtk::Image>();
         installedIcon->set_valign(Gtk::ALIGN_CENTER);
         installedIcon->set_from_icon_name("emblem-ok", Gtk::ICON_SIZE_BUTTON);
         installedIcon->get_style_context()->add_class("disabled");
@@ -344,7 +318,7 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
 
         btnBox->add(*btnHeaderBox);
 
-        Gtk::Label* lblPlaceholder = new Gtk::Label();
+        Gtk::Label* lblPlaceholder = Gtk::make_managed<Gtk::Label>();
         lblPlaceholder->set_size_request(0, 40);
         lblPlaceholder->set_text("");
         lblPlaceholder->set_alignment(Gtk::ALIGN_START);
@@ -360,30 +334,30 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
             fontListItem->installedIconWidget->hide();
         }
 
-        self->familyListBox->add(*btn);
+        self->familyListBox.add(*btn);
 
         i->button = btn;
-        self->fontListItems->push_back(fontListItem);
+        self->fontListItems.push_back(fontListItem);
     }
     self->signal_check_resize().connect(sigc::mem_fun(*self,&GoogleFontsWindow::fontListScroll));
     
-    self->searchEntry->set_sensitive(true);
-    self->searchEntry->grab_focus();
+    self->searchEntry.set_sensitive(true);
+    self->searchEntry.grab_focus();
 }
 
 void GoogleFontsWindow::switchToFontList() {
-    this->backButton->hide();
-    this->stack->set_visible_child("list");
+    this->backButton.hide();
+    this->stack.set_visible_child("list");
     this->currentFontListItem = NULL;
 
-    gtk_header_bar_set_custom_title(headerBar->gobj(), NULL);
+    gtk_header_bar_set_custom_title(headerBar.gobj(), NULL);
 }
 
 void GoogleFontsWindow::loadLicense() {
     Glib::Dispatcher* dispatcher = new Glib::Dispatcher();
     std::string* licenseText = new std::string();
 
-    this->licenseLabel->set_text("");
+    this->licenseLabel.set_text("");
 
     JsonArray *array = json_array_new();
     JsonArray *array2 = json_array_new();
@@ -399,7 +373,7 @@ void GoogleFontsWindow::loadLicense() {
     g_free(array3);
 
     dispatcher->connect([this, dispatcher, licenseText]() {
-        this->licenseLabel->set_markup(*licenseText);
+        this->licenseLabel.set_markup(*licenseText);
 
         delete dispatcher;
         delete licenseText;
@@ -442,7 +416,7 @@ void GoogleFontsWindow::loadFamilyDetails() {
     Glib::Dispatcher* dispatcher = new Glib::Dispatcher();
     std::string* authors = new std::string();
     
-    this->specimenAuthors->set_text("");
+    this->specimenAuthors.set_text("");
     
     JsonArray *array = json_array_new();
     JsonArray *array2 = json_array_new();
@@ -458,7 +432,7 @@ void GoogleFontsWindow::loadFamilyDetails() {
     g_free(array3);
 
     dispatcher->connect([this, dispatcher, authors]() {
-        this->specimenAuthors->set_text(Glib::ustring::compose(_("Designed by %1"), *authors));
+        this->specimenAuthors.set_text(Glib::ustring::compose(_("Designed by %1"), *authors));
         
         delete dispatcher;
         delete authors;
@@ -508,7 +482,7 @@ void GoogleFontsWindow::loadSampleText() {
     g_free(array2);
 
     dispatcher->connect([this, dispatcher, sampleText]() {
-        this->stylePreviewText = sampleText;
+        this->stylePreviewText = *sampleText;
         this->updateStylePreview();
 
         delete dispatcher;
@@ -532,30 +506,26 @@ void GoogleFontsWindow::loadSampleText() {
     }).detach();
 }
 
-void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListItem) {
+void GoogleFontsWindow::switchToFontFamily(std::shared_ptr<GoogleFontsFamilyListItem> fontListItem) {
     this->currentFontListItem = fontListItem;
-    this->backButton->show();
-    this->stack->set_visible_child("view");
-    this->notebook->set_current_page(0);
-    this->swSpecimen->get_vadjustment()->set_value(0);
+    this->backButton.show();
+    this->stack.set_visible_child("view");
+    this->notebook.set_current_page(0);
+    this->swSpecimen.get_vadjustment()->set_value(0);
 
-    headerBarCustomText->set_text(fontListItem->fontFamily->displayName);
-    headerBar->set_custom_title(*headerBarCustomText);
+    headerBarCustomText.set_text(fontListItem->fontFamily->displayName);
+    headerBar.set_custom_title(headerBarCustomText);
 
-    specimenTitle->set_text(fontListItem->fontFamily->displayName);
+    specimenTitle.set_text(fontListItem->fontFamily->displayName);
 
     this->installButtonReload();
 
-    if (this->styleListItems != NULL) {
-        for (auto styleListItem : *this->styleListItems) {
-            g_cancellable_cancel(styleListItem->loadCancellable);
-        }
-        this->styleListItems->clear();
-        delete this->styleListItems;
+    for (auto styleListItem : this->styleListItems) {
+        g_cancellable_cancel(styleListItem->loadCancellable);
     }
-    this->styleListItems = new std::vector<GoogleFontsStyleListItem*>();
+    this->styleListItems.clear();
 
-    for (auto child : this->specimenStyles->get_children()) {
+    for (auto child : this->specimenStyles.get_children()) {
         delete child;
     }
 
@@ -564,15 +534,15 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
     this->loadSampleText();
 
     for (auto style : fontListItem->fontFamily->styles) {
-        GoogleFontsStyleListItem *styleListItem = new GoogleFontsStyleListItem();
+        auto styleListItem = std::make_shared<GoogleFontsStyleListItem>();
         styleListItem->googleFontsWindow = this;
         styleListItem->style = style;
         styleListItem->fontWidget = NULL;
 
-        Gtk::Separator *separator = new Gtk::Separator();
+        Gtk::Separator *separator = Gtk::make_managed<Gtk::Separator>();
         separator->show();
-        this->specimenStyles->add(*separator);
-        Gtk::Box *box = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
+        this->specimenStyles.add(*separator);
+        Gtk::Box *box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_VERTICAL);
         styleListItem->box = box;
         box->set_margin_left(10);
         box->set_margin_right(10);
@@ -582,7 +552,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         box->set_spacing(8);
 
 
-        Gtk::Label *styleText = new Gtk::Label();
+        Gtk::Label *styleText = Gtk::make_managed<Gtk::Label>();
         styleText->set_sensitive(false);
         styleText->set_text(
             std::string(weight_to_name(style->weight)) +
@@ -593,7 +563,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         styleText->set_alignment(Gtk::ALIGN_START);
         box->add(*styleText);
 
-        Gtk::Label* lblPlaceholder = new Gtk::Label();
+        Gtk::Label* lblPlaceholder = Gtk::make_managed<Gtk::Label>();
         lblPlaceholder->set_size_request(0, 40);
         lblPlaceholder->set_text("");
         lblPlaceholder->set_alignment(Gtk::ALIGN_START);
@@ -601,7 +571,7 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         box->add(*lblPlaceholder);
 
         box->show_all();
-        this->specimenStyles->add(*box);
+        this->specimenStyles.add(*box);
 
         std::string familyLoadText = style->family->family;
         familyLoadText += ":ital,wght@";
@@ -613,26 +583,31 @@ void GoogleFontsWindow::switchToFontFamily(GoogleFontsFamilyListItem* fontListIt
         familyLoadText += ",";
         familyLoadText += std::to_string(style->weight);
 
-        GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
+        auto loadData = std::make_shared<GoogleFontsFamilyLoadData>();
         loadData->family = familyLoadText;
         loadData->language = style->family->language;
         styleListItem->loadData = loadData;
 
         GCancellable* cancellable = g_cancellable_new();
         styleListItem->loadCancellable = cancellable;
-        GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFontFamilyInList_callback_style, styleListItem);
-        g_task_set_task_data(task,loadData,NULL);
+        GTask* task = g_task_new(
+            this->gobj(),
+            cancellable,
+            GoogleFontsWindow_loadFontFamilyInList_callback_style,
+            new std::shared_ptr<GoogleFontsStyleListItem>(styleListItem)
+        );
+        g_task_set_task_data(task,new std::shared_ptr<GoogleFontsFamilyLoadData>(loadData),NULL);
         g_task_run_in_thread(task,GoogleFontsWindow_loadFontFamilyInList);
 
-        this->styleListItems->push_back(styleListItem);
+        this->styleListItems.push_back(styleListItem);
     }
     Gtk::Separator *separator = new Gtk::Separator();
     separator->show();
-    this->specimenStyles->add(*separator);
+    this->specimenStyles.add(*separator);
 }
 
 void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable) {
-    GoogleFontsFamilyLoadData *loadData = (GoogleFontsFamilyLoadData*)task_data;
+    auto loadData = *(std::shared_ptr<GoogleFontsFamilyLoadData>*)task_data;
     std::regex sourceRegex(R"(src:\s*url\(([^)]+)\))");
     std::string css;
     std::smatch match;
@@ -675,11 +650,13 @@ void GoogleFontsWindow_loadFontFamilyInList(GTask *task, gpointer source_object,
     curl_easy_cleanup(curl);
 
     g_task_return_pointer(task, data, NULL);
+
+    delete (std::shared_ptr<GoogleFontsFamilyLoadData>*)task_data;
 }
 
 
 void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAsyncResult *res, gpointer user_data) {
-    GoogleFontsFamilyListItem* listItem = (GoogleFontsFamilyListItem*)user_data;
+    auto listItem = *(std::shared_ptr<GoogleFontsFamilyListItem>*)user_data;
     GError* error = NULL;
     std::vector<uint8_t>* data = (std::vector<uint8_t>*)g_task_propagate_pointer(G_TASK(res), &error);
     if (error != NULL) {
@@ -697,10 +674,11 @@ void GoogleFontsWindow_loadFontFamilyInList_callback(GObject *source_object, GAs
     fontWidgetMM->show();
 
     delete listItem->placeholderText;
+    delete (std::shared_ptr<GoogleFontsFamilyListItem>*)user_data;
 }
 
 void GoogleFontsWindow_loadFontFamilyInList_callback_style(GObject *source_object, GAsyncResult *res, gpointer user_data) {
-    GoogleFontsStyleListItem* listItem = (GoogleFontsStyleListItem*)user_data;
+    auto listItem = *(std::shared_ptr<GoogleFontsStyleListItem>*)user_data;
     GError* error = NULL;
     std::vector<uint8_t>* data = (std::vector<uint8_t>*)g_task_propagate_pointer(G_TASK(res), &error);
     if (error != NULL) {
@@ -713,33 +691,36 @@ void GoogleFontsWindow_loadFontFamilyInList_callback_style(GObject *source_objec
     SushiFontWidget* fontWidget = sushi_font_widget_new_from_bytes((gchar*)data->data(), data->size(), 0);
 
     listItem->fontWidget = fontWidget;
-    sushi_font_widget_set_text(fontWidget, listItem->googleFontsWindow->getStylePreviewText()->c_str());
+    std::string *previewText = new std::string(listItem->googleFontsWindow->getStylePreviewText());
+    sushi_font_widget_set_text(fontWidget, previewText->c_str());
 
     Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
     listItem->box->add(*fontWidgetMM);
     fontWidgetMM->show();
+
+    delete (std::shared_ptr<GoogleFontsStyleListItem>*)user_data;
 }
 
 
 void GoogleFontsWindow::fontListScroll() {
-    double scrollPosition = scrolledWindow->get_vadjustment()->get_value();
-    for (GoogleFontsFamilyListItem* listItem : *fontListItems) {
+    double scrollPosition = scrolledWindow.get_vadjustment()->get_value();
+    for (auto listItem : fontListItems) {
         if (listItem->hasBeenViewed) continue;
         if (!listItem->button->get_visible()) continue;
 
         Gtk::Allocation allocation = listItem->button->get_allocation();
         int y = allocation.get_y();
-        int windowHeight = this->scrolledWindow->get_height();
+        int windowHeight = this->scrolledWindow.get_height();
         if (y > scrollPosition - 256 && y < scrollPosition + windowHeight + 256) {
             listItem->hasBeenViewed = true;
 
-            GoogleFontsFamilyLoadData *loadData = new GoogleFontsFamilyLoadData();
+            auto loadData = std::make_shared<GoogleFontsFamilyLoadData>();
             loadData->family = listItem->fontFamily->family;
             loadData->language = listItem->fontFamily->language;
             listItem->loadData = loadData;
             GCancellable* cancellable = g_cancellable_new();
-            GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFontFamilyInList_callback,listItem);
-            g_task_set_task_data(task,loadData,NULL);
+            GTask* task = g_task_new(this->gobj(),cancellable,GoogleFontsWindow_loadFontFamilyInList_callback,new std::shared_ptr<GoogleFontsFamilyListItem>(listItem));
+            g_task_set_task_data(task,new std::shared_ptr<GoogleFontsFamilyLoadData>(loadData),NULL);
             g_task_run_in_thread(task,GoogleFontsWindow_loadFontFamilyInList);
         }
     }
@@ -751,11 +732,11 @@ bool GoogleFontsWindow::queuedFontListScroll() {
 }
 
 void GoogleFontsWindow::searchUpdated() {
-    if (this->stack->get_visible_child_name() != "list") {
+    if (this->stack.get_visible_child_name() != "list") {
         this->switchToFontList();
     }
-    std::string input = this->searchEntry->get_text().lowercase();
-    for (GoogleFontsFamilyListItem* listItem : *fontListItems) {
+    std::string input = this->searchEntry.get_text().lowercase();
+    for (auto listItem : fontListItems) {
         std::string family = listItem->fontFamily->displayName;
         std::transform(family.begin(), family.end(), family.begin(), [](unsigned char c){ return std::tolower(c); });
         if (family.find(input) != std::string::npos) {
@@ -767,57 +748,53 @@ void GoogleFontsWindow::searchUpdated() {
     Glib::signal_idle().connect(sigc::mem_fun(*this, &GoogleFontsWindow::queuedFontListScroll));
 }
 
-std::string *GoogleFontsWindow::getStylePreviewText() {
-    if (this->userOverridenStylePreviewText != NULL) {
+std::string GoogleFontsWindow::getStylePreviewText() {
+    if (this->userOverridenStylePreviewText != "") {
         return this->userOverridenStylePreviewText;
     }
     return this->stylePreviewText;
 }
 
 void GoogleFontsWindow::updateStylePreview() {
-    for (auto style : *this->styleListItems) {
+    for (auto style : this->styleListItems) {
         if (style->fontWidget != NULL) {
-            sushi_font_widget_set_text(style->fontWidget, getStylePreviewText()->c_str());
+            std::string *string = new std::string(getStylePreviewText());
+            sushi_font_widget_set_text(style->fontWidget, string->c_str());
             gtk_widget_queue_draw(GTK_WIDGET(style->fontWidget));
         }
     }
 }
 
 void GoogleFontsWindow::userOverridenStylePreviewTextChanged() {
-    delete this->userOverridenStylePreviewText;
-    std::string text = specimenStylesCustomPreviewEntry->get_text();
-    if (text.empty()) {
-        this->userOverridenStylePreviewText = NULL;
-    } else {
-        this->userOverridenStylePreviewText = new std::string(text);
-    }
+    std::string text = specimenStylesCustomPreviewEntry.get_text();
+    this->userOverridenStylePreviewText = text;
 
     this->updateStylePreview();
 }
 
 void GoogleFontsWindow::installButtonReload() {
-    specimenInstallButton->get_style_context()->remove_class("suggested-action");
-    specimenInstallButton->get_style_context()->remove_class("destructive-action");
+    specimenInstallButton.get_style_context()->remove_class("suggested-action");
+    specimenInstallButton.get_style_context()->remove_class("destructive-action");
 
     if (this->currentFontListItem == NULL) return;
 
     if (this->currentFontListItem->fontFamily->isInstalled) {
-        specimenInstallButton->get_style_context()->add_class("destructive-action");
-        specimenInstallButton->set_label(_("Uninstall"));
+        specimenInstallButton.get_style_context()->add_class("destructive-action");
+        specimenInstallButton.set_label(_("Uninstall"));
     } else {
-        specimenInstallButton->get_style_context()->add_class("suggested-action");
-        specimenInstallButton->set_label(_("Install"));
+        specimenInstallButton.get_style_context()->add_class("suggested-action");
+        specimenInstallButton.set_label(_("Install"));
     }
 }
 
 void GoogleFontsWindow::installButtonClick() {
-    this->specimenInstallButton->set_sensitive(false);
-    GoogleFontsFamilyListItem *listItem = this->currentFontListItem;
+    this->specimenInstallButton.set_sensitive(false);
+    auto listItem = this->currentFontListItem;
     if (listItem->fontFamily->isInstalled) {
-        this->specimenInstallButton->set_label(_("Uninstalling..."));
+        this->specimenInstallButton.set_label(_("Uninstalling..."));
         Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
         dispatcher->connect([this, listItem, dispatcher]() {
-            this->specimenInstallButton->set_sensitive(true);
+            this->specimenInstallButton.set_sensitive(true);
             this->installButtonReload();
             if (!listItem->fontFamily->isInstalled) {
                 listItem->installedLabelWidget->hide();
@@ -869,12 +846,12 @@ void GoogleFontsWindow::installButtonClick() {
             }).detach();
         }
     } else {
-        this->specimenInstallButton->set_label(_("Installing..."));
+        this->specimenInstallButton.set_label(_("Installing..."));
 
         Glib::Dispatcher *dispatcher = new Glib::Dispatcher();
         dispatcher->connect([this, listItem, dispatcher]() {
             listItem->fontFamily->isInstalled = true;
-            this->specimenInstallButton->set_sensitive(true);
+            this->specimenInstallButton.set_sensitive(true);
             this->installButtonReload();
             listItem->installedLabelWidget->show();
             listItem->installedIconWidget->show();
@@ -975,8 +952,22 @@ void GoogleFontsWindow::installButtonClick() {
 
 bool GoogleFontsWindow::windowKeyPressEvent(GdkEventKey* event) {
     if (event->keyval == GDK_KEY_f && event->state & GDK_CONTROL_MASK) {
-        this->searchEntry->grab_focus();
+        this->searchEntry.grab_focus();
         return true;
     }
     return false;
+}
+
+GoogleFontsWindow::~GoogleFontsWindow() {
+    for (auto styleListItem : this->styleListItems) {
+        g_cancellable_cancel(styleListItem->loadCancellable);
+    }
+    this->styleListItems.clear();
+
+    for (auto family : this->families) {
+        family->styles.clear();
+    }
+    this->families.clear();
+
+    this->fontListItems.clear();
 }

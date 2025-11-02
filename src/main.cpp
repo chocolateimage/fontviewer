@@ -714,7 +714,9 @@ void MainWindow::openGoogleFonts() {
 }
 
 MainWindow::~MainWindow() {
-    
+    if (googleFontsWindow != NULL) {
+        delete googleFontsWindow;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -759,5 +761,6 @@ int main(int argc, char** argv) {
         win = new MainWindow(fonts, defaultFileName);
     }
     app->run(*win);
+    delete win;
     return 0;
 }

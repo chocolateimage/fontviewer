@@ -21,60 +21,62 @@ struct GoogleFontsFamilyLoadData;
 class GoogleFontsWindow: public Gtk::Window {
     public:
         GoogleFontsWindow(std::vector<FontFamilyData*>* fonts);
+        ~GoogleFontsWindow();
 
         bool queuedFontListScroll();
         void fontListScroll();
         void searchUpdated();
         void switchToFontList();
-        void switchToFontFamily(GoogleFontsFamilyListItem* fontListItem);
+        void switchToFontFamily(std::shared_ptr<GoogleFontsFamilyListItem> fontListItem);
         void updateStylePreview();
         void userOverridenStylePreviewTextChanged();
         void installButtonReload();
         void installButtonClick();
         bool windowKeyPressEvent(GdkEventKey* event);
 
-        std::string *getStylePreviewText();
+        std::string getStylePreviewText();
 
         std::vector<FontFamilyData*>* fontFamilies = NULL;
 
-        Gtk::HeaderBar *headerBar;
-        Gtk::Label *headerBarCustomText;
-        Gtk::Button *backButton;
-        Gtk::SearchEntry *searchEntry;
-        Gtk::Stack *stack;
+        Gtk::HeaderBar headerBar;
+        Gtk::Label headerBarCustomText;
+        Gtk::Button backButton;
+        Gtk::SearchEntry searchEntry;
+        Gtk::Stack stack;
 
-        Gtk::Spinner *spinner;
+        Gtk::Spinner spinner;
 
-        Gtk::ScrolledWindow* scrolledWindow;
-        Gtk::Box* familyListBox;
-
-
-        Gtk::Notebook *notebook;
-
-        Gtk::ScrolledWindow *swSpecimen;
-        Gtk::Box *boxSpecimen;
-        Gtk::Box *specimenHeader;
-        Gtk::Label *specimenTitle;
-        Gtk::Button *specimenInstallButton;
-        Gtk::Label *specimenAuthors;
-        Gtk::Entry *specimenStylesCustomPreviewEntry;
-        Gtk::Box *specimenStyles;
-
-        Gtk::Box *boxAbout;
-
-        Gtk::ScrolledWindow *swLicense;
-        Gtk::Box *boxLicense;
-        Gtk::Label *licenseLabel;
+        Gtk::ScrolledWindow scrolledWindow;
+        Gtk::Box familyListBox;
 
 
-        std::string *stylePreviewText;
-        std::string *userOverridenStylePreviewText;
+        Gtk::Notebook notebook;
 
-        std::vector<GoogleFontsFamilyListItem*>* fontListItems;
-        std::vector<GoogleFontsStyleListItem*>* styleListItems;
-        std::vector<GoogleFontsFamily*>* families;
+        Gtk::ScrolledWindow swSpecimen;
+        Gtk::Box boxSpecimen;
+        Gtk::Box specimenHeader;
+        Gtk::Label specimenTitle;
+        Gtk::Button specimenInstallButton;
+        Gtk::Label specimenAuthors;
+        Gtk::Entry specimenStylesCustomPreviewEntry;
+        Gtk::Box specimenStyles;
+        Gtk::Label specimenStylesLabel;
 
-        GoogleFontsFamilyListItem* currentFontListItem;
+        Gtk::Box boxAbout;
+
+        Gtk::ScrolledWindow swLicense;
+        Gtk::Box boxLicense;
+        Gtk::Label licenseLabel;
+        Gtk::Label licenseTitleLabel;
+
+        std::string stylePreviewText;
+        std::string userOverridenStylePreviewText;
+
+        std::vector<std::shared_ptr<GoogleFontsFamilyListItem>> fontListItems;
+        std::vector<std::shared_ptr<GoogleFontsStyleListItem>> styleListItems;
+        std::vector<std::shared_ptr<GoogleFontsFamily>> families;
+
+        std::shared_ptr<GoogleFontsFamilyListItem> currentFontListItem;
     private:
         void loadLicense();
         void loadFamilyDetails();
@@ -92,21 +94,21 @@ struct GoogleFontsFamilyListItem {
     Gtk::Label* placeholderText;
     Gtk::Widget* installedIconWidget;
     Gtk::Widget* installedLabelWidget;
-    GoogleFontsFamily* fontFamily;
+    std::shared_ptr<GoogleFontsFamily> fontFamily;
     bool hasBeenViewed;
 
-    GoogleFontsFamilyLoadData* loadData;
+    std::shared_ptr<GoogleFontsFamilyLoadData> loadData;
 };
 
 struct GoogleFontsStyleListItem {
     GoogleFontsWindow* googleFontsWindow;
     Gtk::Box* box;
     Gtk::Label* placeholderText;
-    GoogleFontsStyle* style;
+    std::shared_ptr<GoogleFontsStyle> style;
     SushiFontWidget* fontWidget;
 
     GCancellable* loadCancellable;
-    GoogleFontsFamilyLoadData* loadData;
+    std::shared_ptr<GoogleFontsFamilyLoadData> loadData;
 };
 
 struct GoogleFontsFamilyLoadData {

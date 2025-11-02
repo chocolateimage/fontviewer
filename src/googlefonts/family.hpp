@@ -18,7 +18,7 @@ public:
 
     Gtk::Button *button;
 
-    std::vector<GoogleFontsStyle*> styles;
+    std::vector<std::shared_ptr<GoogleFontsStyle>> styles;
 
     bool isInstalled;
     std::vector<std::string> paths;
@@ -26,7 +26,7 @@ public:
 
 class GoogleFontsStyle {
 public:
-    GoogleFontsFamily *family;
+    std::shared_ptr<GoogleFontsFamily> family;
 
     int weight;
     int slant;

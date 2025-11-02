@@ -2,17 +2,20 @@
 
 #include <string>
 #include <vector>
-#include <gtkmm/window.h>
+#include <gtkmm/applicationwindow.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/headerbar.h>
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/button.h>
 #include <gtkmm/label.h>
 #include <gtkmm/scrolledwindow.h>
+#include <gtkmm/box.h>
+#include <gtkmm/searchentry.h>
+#include <gtkmm/stack.h>
 #include "font.hpp"
-#include "googlefonts/google-fonts-window.hpp"
+// #include "googlefonts/google-fonts-window.hpp"
 
-class MainWindow: public Gtk::Window {
+class MainWindow: public Gtk::ApplicationWindow {
     public:
         MainWindow(std::vector<FontFamilyData*>* fonts, std::string* defaultFileName);
         void loadFonts();
@@ -25,7 +28,7 @@ class MainWindow: public Gtk::Window {
         void switchToFontList();
         void addInfoText(std::string,std::string);
         void installFontClicked();
-        bool windowKeyPressEvent(GdkEventKey* event);
+        bool windowKeyPressEvent(guint keyval, guint keycode, Gdk::ModifierType state);
         void searchUpdated();
         void openGoogleFonts();
         ~MainWindow();
@@ -45,7 +48,7 @@ class MainWindow: public Gtk::Window {
         Gtk::Stack* stack;
         Gtk::ScrolledWindow* fontsListScrollWidget;
         Gtk::Box* fontsListWidget;
-        Gtk::HBox* fontViewWidget;
+        Gtk::Box* fontViewWidget;
         Gtk::ScrolledWindow* fontFamilyScrollWidget;
         Gtk::Box* fontFamilyBoxWidget;
         Gtk::Label* fontFamilyLabelWidget;
@@ -58,5 +61,5 @@ class MainWindow: public Gtk::Window {
 
         std::vector<FontFamilyData*>* fontFamilies = NULL;
 
-        GoogleFontsWindow* googleFontsWindow;
+        // GoogleFontsWindow* googleFontsWindow;
 };

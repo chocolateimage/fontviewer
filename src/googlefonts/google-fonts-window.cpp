@@ -4,6 +4,7 @@
 #include <gtkmm/cssprovider.h>
 #include <gtkmm/separator.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/adjustment.h>
 #include <glibmm/dispatcher.h>
 #include <glibmm/uriutils.h>
 #include <glibmm/miscutils.h>
@@ -61,93 +62,92 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
         "notebook tabs {padding-left: 60px; padding-right: 60px;} "
         ".disabled { color: @insensitive_fg_color; }"
         );
-    this->get_style_context()->add_provider_for_screen(Gdk::Screen::get_default(),provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    this->get_style_context()->add_provider(provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     this->stylePreviewText = "";
     this->userOverridenStylePreviewText = "";
     this->currentFontListItem = NULL;
 
-    this->resize(1000, 700);
+    this->set_default_size(1000, 700);
     this->set_title("Google Fonts");
 
-    headerBar.set_title("Google Fonts");
-    headerBar.set_show_close_button();
+    // headerBar.set_show_close_button();
     headerBarCustomText.show();
     backButton.set_image_from_icon_name("go-previous-symbolic");
     backButton.signal_clicked().connect(sigc::mem_fun(*this,&GoogleFontsWindow::switchToFontList));
-    headerBar.add(backButton);
+    headerBar.pack_start(backButton);
     this->set_titlebar(headerBar);
 
     searchEntry.set_placeholder_text(_("Search..."));
     searchEntry.signal_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::searchUpdated));
     searchEntry.set_sensitive(false);
     headerBar.pack_end(searchEntry);
-    this->signal_key_press_event().connect(sigc::mem_fun(*this, &GoogleFontsWindow::windowKeyPressEvent));
+    // this->signal_key_press_event().connect(sigc::mem_fun(*this, &GoogleFontsWindow::windowKeyPressEvent));
 
     stack.set_transition_duration(200);
-    stack.set_transition_type(Gtk::STACK_TRANSITION_TYPE_CROSSFADE);
-    this->add(stack);
+    stack.set_transition_type(Gtk::StackTransitionType::CROSSFADE);
+    this->set_child(stack);
 
     spinner.start();
     stack.add(spinner, "loading");
 
-    scrolledWindow.get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
-    familyListBox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    scrolledWindow.add(familyListBox);
+    // scrolledWindow.get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
+    familyListBox.set_orientation(Gtk::Orientation::VERTICAL);
+    scrolledWindow.set_child(familyListBox);
     stack.add(scrolledWindow, "list");
 
-    boxSpecimen.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    boxSpecimen.set_margin_left(60);
-    boxSpecimen.set_margin_right(60);
+    boxSpecimen.set_orientation(Gtk::Orientation::VERTICAL);
+    boxSpecimen.set_margin_start(60);
+    boxSpecimen.set_margin_end(60);
     boxSpecimen.set_margin_top(18);
     boxSpecimen.set_spacing(8);
 
-    specimenTitle.set_alignment(Gtk::ALIGN_START);
+    // specimenTitle.set_alignment(Gtk::ALIGN_START);
     setFontSizeOfLabel(specimenTitle, 32);
-    specimenHeader.add(specimenTitle);
+    specimenHeader.append(specimenTitle);
 
-    specimenInstallButton.set_valign(Gtk::ALIGN_START);
+    specimenInstallButton.set_valign(Gtk::Align::START);
     specimenInstallButton.signal_clicked().connect(sigc::mem_fun(*this, &GoogleFontsWindow::installButtonClick));
-    specimenHeader.pack_end(specimenInstallButton, Gtk::PACK_SHRINK);
+    specimenHeader.append(specimenInstallButton);
 
-    boxSpecimen.add(specimenHeader);
+    boxSpecimen.append(specimenHeader);
 
-    specimenAuthors.set_alignment(Gtk::ALIGN_START);
+    // specimenAuthors.set_alignment(Gtk::ALIGN_START);
     specimenAuthors.set_sensitive(false);
     specimenAuthors.set_margin_bottom(12);
-    boxSpecimen.add(specimenAuthors);
+    boxSpecimen.append(specimenAuthors);
 
-    specimenStylesLabel.set_alignment(Gtk::ALIGN_START);
+    // specimenStylesLabel.set_alignment(Gtk::ALIGN_START);
     setFontSizeOfLabel(specimenStylesLabel, 18);
     specimenStylesLabel.set_text(_("Styles"));
-    boxSpecimen.add(specimenStylesLabel);
+    boxSpecimen.append(specimenStylesLabel);
 
     specimenStylesCustomPreviewEntry.set_placeholder_text(_("Enter text to preview in the font"));
     specimenStylesCustomPreviewEntry.signal_changed().connect(sigc::mem_fun(*this, &GoogleFontsWindow::userOverridenStylePreviewTextChanged));
-    boxSpecimen.add(specimenStylesCustomPreviewEntry);
+    boxSpecimen.append(specimenStylesCustomPreviewEntry);
 
-    specimenStyles.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    boxSpecimen.add(specimenStyles);
+    specimenStyles.set_orientation(Gtk::Orientation::VERTICAL);
+    boxSpecimen.append(specimenStyles);
 
-    swSpecimen.add(boxSpecimen);
+    swSpecimen.set_child(boxSpecimen);
     notebook.append_page(swSpecimen, _("Specimen"));
 
-    boxLicense.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    boxLicense.set_margin_left(60);
-    boxLicense.set_margin_right(60);
+    boxLicense.set_orientation(Gtk::Orientation::VERTICAL);
+    boxLicense.set_margin_start(60);
+    boxLicense.set_margin_end(60);
     boxLicense.set_margin_top(18);
     boxLicense.set_spacing(12);
 
-    licenseTitleLabel.set_alignment(Gtk::ALIGN_START);
+    // licenseTitleLabel.set_alignment(Gtk::ALIGN_START);
     setFontSizeOfLabel(licenseTitleLabel, 18);
     licenseTitleLabel.set_text(_("License"));
-    boxLicense.add(licenseTitleLabel);
+    boxLicense.append(licenseTitleLabel);
 
-    licenseLabel.set_alignment(Gtk::ALIGN_START);
+    // licenseLabel.set_alignment(Gtk::ALIGN_START);
     licenseLabel.set_selectable(true);
-    boxLicense.add(licenseLabel);
+    boxLicense.append(licenseLabel);
 
-    swLicense.add(boxLicense);
+    swLicense.set_child(boxLicense);
     notebook.append_page(swLicense, _("License"));
 
     stack.add(notebook, "view");
@@ -157,7 +157,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     g_task_set_task_data(task,this,NULL);
     g_task_run_in_thread(task,GoogleFontsWindow_loadFamilies);
 
-    this->show_all();
+    this->show();
     backButton.hide();
 }
 
@@ -272,74 +272,74 @@ void GoogleFontsWindow_loadFamilies_callback(GObject *source_object, GAsyncResul
         Gtk::Button* btn = Gtk::make_managed<Gtk::Button>();
         fontListItem->button = btn;
 
-        btn->set_relief(Gtk::RELIEF_NONE);
+        // btn->set_relief(Gtk::RELIEF_NONE);
         btn->signal_clicked().connect(sigc::bind(sigc::mem_fun(*self, &GoogleFontsWindow::switchToFontFamily), fontListItem));
 
-        Gtk::Box *btnBox = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_VERTICAL);
+        Gtk::Box *btnBox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
         fontListItem->buttonBox = btnBox;
-        btnBox->set_margin_left(8);
-        btnBox->set_margin_right(8);
+        btnBox->set_margin_start(8);
+        btnBox->set_margin_end(8);
         btnBox->set_margin_top(4);
         btnBox->set_margin_bottom(4);
         btnBox->set_spacing(8);
 
-        Gtk::Box* btnHeaderBox = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL);
+        Gtk::Box* btnHeaderBox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL);
         btnHeaderBox->set_spacing(4);
 
         Gtk::Label* btnLabel = Gtk::make_managed<Gtk::Label>();
-        btnLabel->set_alignment(Gtk::ALIGN_START);
+        // btnLabel->set_alignment(Gtk::ALIGN_START);
         btnLabel->set_text(i->displayName);
         btnLabel->get_style_context()->add_class("display-name");
-        btnHeaderBox->pack_start(*btnLabel,Gtk::PACK_SHRINK,0);
+        btnHeaderBox->append(*btnLabel);
         
         if (i->styles.size() > 1) {
             Gtk::Label* btnStyleCount = Gtk::make_managed<Gtk::Label>();
             btnStyleCount->set_sensitive(false);
             btnStyleCount->get_style_context()->add_class("disabled");
-            btnStyleCount->set_alignment(Gtk::ALIGN_START);
+            // btnStyleCount->set_alignment(Gtk::ALIGN_START);
             btnStyleCount->set_text(Glib::ustring::compose(_("%1 styles"),std::to_string(i->styles.size())));
-            btnHeaderBox->pack_start(*btnStyleCount,Gtk::PACK_SHRINK,0);
+            btnHeaderBox->append(*btnStyleCount);
         }
         
         Gtk::Label* installedLabel = Gtk::make_managed<Gtk::Label>();
-        installedLabel->set_valign(Gtk::ALIGN_CENTER);
+        installedLabel->set_valign(Gtk::Align::CENTER);
         installedLabel->set_text(_("Installed"));
         installedLabel->set_sensitive(false);
         installedLabel->get_style_context()->add_class("disabled");
-        btnHeaderBox->pack_end(*installedLabel,Gtk::PACK_SHRINK,0);
+        btnHeaderBox->append(*installedLabel);
         fontListItem->installedLabelWidget = installedLabel;
 
         Gtk::Image *installedIcon = Gtk::make_managed<Gtk::Image>();
-        installedIcon->set_valign(Gtk::ALIGN_CENTER);
-        installedIcon->set_from_icon_name("emblem-ok", Gtk::ICON_SIZE_BUTTON);
+        installedIcon->set_valign(Gtk::Align::CENTER);
+        installedIcon->set_from_icon_name("emblem-ok");
         installedIcon->get_style_context()->add_class("disabled");
-        btnHeaderBox->pack_end(*installedIcon,Gtk::PACK_SHRINK,0);
+        btnHeaderBox->append(*installedIcon);
         fontListItem->installedIconWidget = installedIcon;
 
-        btnBox->add(*btnHeaderBox);
+        btnBox->append(*btnHeaderBox);
 
         Gtk::Label* lblPlaceholder = Gtk::make_managed<Gtk::Label>();
         lblPlaceholder->set_size_request(0, 40);
         lblPlaceholder->set_text("");
-        lblPlaceholder->set_alignment(Gtk::ALIGN_START);
-        btnBox->add(*lblPlaceholder);
+        // lblPlaceholder->set_alignment(Gtk::ALIGN_START);
+        btnBox->append(*lblPlaceholder);
         fontListItem->placeholderText = lblPlaceholder;
 
-        btn->add(*btnBox);
+        btn->set_child(*btnBox);
 
-        btn->show_all();
+        btn->show();
 
         if (!i->isInstalled) {
             fontListItem->installedLabelWidget->hide();
             fontListItem->installedIconWidget->hide();
         }
 
-        self->familyListBox.add(*btn);
+        self->familyListBox.append(*btn);
 
         i->button = btn;
         self->fontListItems.push_back(fontListItem);
     }
-    self->signal_check_resize().connect(sigc::mem_fun(*self,&GoogleFontsWindow::fontListScroll));
+    // self->signal_check_resize().connect(sigc::mem_fun(*self,&GoogleFontsWindow::fontListScroll));
     
     self->searchEntry.set_sensitive(true);
     self->searchEntry.grab_focus();
@@ -350,7 +350,7 @@ void GoogleFontsWindow::switchToFontList() {
     this->stack.set_visible_child("list");
     this->currentFontListItem = NULL;
 
-    gtk_header_bar_set_custom_title(headerBar.gobj(), NULL);
+    // gtk_header_bar_set_custom_title(headerBar.gobj(), NULL);
 }
 
 void GoogleFontsWindow::loadLicense() {
@@ -511,10 +511,10 @@ void GoogleFontsWindow::switchToFontFamily(std::shared_ptr<GoogleFontsFamilyList
     this->backButton.show();
     this->stack.set_visible_child("view");
     this->notebook.set_current_page(0);
-    this->swSpecimen.get_vadjustment()->set_value(0);
+    // this->swSpecimen.get_vadjustment()->set_value(0);
 
     headerBarCustomText.set_text(fontListItem->fontFamily->displayName);
-    headerBar.set_custom_title(headerBarCustomText);
+    // headerBar.set_custom_title(headerBarCustomText);
 
     specimenTitle.set_text(fontListItem->fontFamily->displayName);
 
@@ -542,10 +542,10 @@ void GoogleFontsWindow::switchToFontFamily(std::shared_ptr<GoogleFontsFamilyList
         Gtk::Separator *separator = Gtk::make_managed<Gtk::Separator>();
         separator->show();
         this->specimenStyles.add(*separator);
-        Gtk::Box *box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_VERTICAL);
+        Gtk::Box *box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
         styleListItem->box = box;
-        box->set_margin_left(10);
-        box->set_margin_right(10);
+        box->set_margin_start(10);
+        box->set_margin_end(10);
         box->set_margin_top(8);
         box->set_margin_bottom(8);
 

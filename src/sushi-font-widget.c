@@ -250,7 +250,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   GtkStyleContext *context;
   GdkRGBA color;
   GtkBorder padding;
-  GtkStateFlags state;
   gint allocated_width, allocated_height;
 
   if (face == NULL)
@@ -263,14 +262,13 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   if (!gtk_style_context_has_class(context,"sushi-font-widget")) {
     gtk_style_context_add_class(context,"sushi-font-widget");
   }
-  state = gtk_style_context_get_state (context);
 
 
   allocated_width = gtk_widget_get_allocated_width (drawing_area);
   allocated_height = gtk_widget_get_allocated_height (drawing_area);
 
-  gtk_style_context_get_color (context, state, &color);
-  gtk_style_context_get_padding (context, state, &padding);
+  gtk_style_context_get_color (context, &color);
+  gtk_style_context_get_padding (context, &padding);
 
   /* do stuff with text */
 
@@ -382,9 +380,9 @@ sushi_font_widget_init (SushiFontWidget *self)
   if (err != FT_Err_Ok)
     g_error ("Unable to initialize FreeType");
 
-  gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (self)),
-                               GTK_STYLE_CLASS_VIEW);
-  gtk_widget_set_has_window(GTK_WIDGET(self), FALSE);
+  // gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (self)),
+  //                              GTK_STYLE_CLASS_VIEW);
+  // gtk_widget_set_has_window(GTK_WIDGET(self), FALSE);
 }
 
 static void
@@ -467,9 +465,9 @@ sushi_font_widget_class_init (SushiFontWidgetClass *klass)
   oclass->get_property = sushi_font_widget_get_property;
   oclass->constructed = sushi_font_widget_constructed;
 
-  wclass->draw = sushi_font_widget_draw;
-  wclass->get_preferred_width = sushi_font_widget_get_preferred_width;
-  wclass->get_preferred_height = sushi_font_widget_get_preferred_height;
+  // wclass->draw = sushi_font_widget_draw;
+  // wclass->get_preferred_width = sushi_font_widget_get_preferred_width;
+  // wclass->get_preferred_height = sushi_font_widget_get_preferred_height;
 
   properties[PROP_URI] =
     g_param_spec_string ("uri",

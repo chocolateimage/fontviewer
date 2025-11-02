@@ -10,14 +10,14 @@ executable(
     [
         'src/main.cpp',
         'src/pangram.cpp',
-        'src/googlefonts/google-fonts-window.cpp',
+        # 'src/googlefonts/google-fonts-window.cpp',
         'src/sushi-font-widget.c',
         'src/sushi-font-loader.c',
         'src/utils.cpp',
     ],
     dependencies: [
         dependency('fontconfig'),
-        dependency('gtkmm-3.0'),
+        dependency('gtkmm-4.0'),
         dependency('cairomm-1.0'),
         dependency('freetype2'),
         dependency('json-glib-1.0'),

@@ -7,7 +7,12 @@
 #include <gtkmm/cssprovider.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/messagedialog.h>
-#include <gtkmm/main.h>
+#include <gtkmm/application.h>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/eventcontrollerkey.h>
+#include <glibmm/optiongroup.h>
+#include <glibmm/optioncontext.h>
+#include <glibmm/binding.h>
 #include <glib/gi18n.h>
 #include <glibmm/main.h>
 #include <glibmm/miscutils.h>
@@ -139,7 +144,7 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
         ".font-info-name {font-weight: bold;} "
         ".font-style-button {background: none; border: none;} " // at the moment there are no plans to implement an action on button click, so just hide the button style
         );
-    this->get_style_context()->add_provider_for_screen(Gdk::Screen::get_default(),provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    this->get_style_context()->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     fontListItems = new std::vector<FontListItem*>();
     fontStyleListItems = new std::vector<FontStyleListItem*>();
     fontStyleRows = new std::vector<FontStyleRow*>();
@@ -147,15 +152,13 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
     currentPreviewText = NULL;
     currentFontPath = NULL;
     currentFontIndex = -1;
-    googleFontsWindow = NULL;
+    // googleFontsWindow = NULL;
     headerBar = new Gtk::HeaderBar();
-    headerBar->set_title(_("All Fonts"));
-    headerBar->set_show_close_button();
     headerBarCustomText = new Gtk::Label();
     backButton = new Gtk::Button();
     backButton->set_image_from_icon_name("go-previous-symbolic");
     backButton->signal_clicked().connect(sigc::mem_fun(*this,&MainWindow::switchToFontList));
-    headerBar->add(*backButton);
+    headerBar->pack_start(*backButton);
 
     installButton = new Gtk::Button();
     installButton->set_label("");
@@ -174,37 +177,44 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
     
     this->set_size_request(100,100);
     this->set_default_size(950,600);
-    this->set_title(_("Fonts"));
+    this->set_title(_("All Fonts"));
     this->set_titlebar(*headerBar);
     this->set_default_icon_name("fonts");
 
     Gtk::Box* mainBox = new Gtk::Box();
-    mainBox->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    mainBox->set_orientation(Gtk::Orientation::VERTICAL);
 
     searchBar = new Gtk::SearchBar();
     searchEntry = new Gtk::SearchEntry();
     searchEntry->signal_changed().connect(sigc::mem_fun(*this,&MainWindow::searchUpdated));
-    searchBar->add(*searchEntry);
-    mainBox->add(*searchBar);
-    this->signal_key_press_event().connect(sigc::mem_fun(*this,&MainWindow::windowKeyPressEvent));
+    searchBar->set_child(*searchEntry);
+    mainBox->append(*searchBar);
+    auto keyController = Gtk::EventControllerKey::create();
+    keyController->signal_key_pressed().connect(sigc::mem_fun(*this, &MainWindow::windowKeyPressEvent), false);
+    this->add_controller(keyController);
 
-    // had to do C workaround because weirdly Glib::Binding::bind_property wasn't working
-    g_object_bind_property(searchBar->gobj(), "search-mode-enabled", searchButton->gobj(), "active", G_BINDING_BIDIRECTIONAL);
-
+    Glib::Binding::bind_property(
+        searchBar->property_search_mode_enabled(),
+        searchButton->property_active(),
+        Glib::Binding::Flags::BIDIRECTIONAL
+    );
+    
 
     stack = new Gtk::Stack();
     stack->set_transition_duration(200);
-    stack->set_transition_type(Gtk::STACK_TRANSITION_TYPE_CROSSFADE);
-    mainBox->pack_start(*stack,Gtk::PACK_EXPAND_WIDGET,0);
+    stack->set_transition_type(Gtk::StackTransitionType::CROSSFADE);
+    stack->set_hexpand();
+    stack->set_vexpand();
+    mainBox->append(*stack);
 
-    this->add(*mainBox);
+    this->set_child(*mainBox);
     
     fontsListScrollWidget = new Gtk::ScrolledWindow();
     fontsListScrollWidget->get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&MainWindow::fontListScroll));
     stack->add(*fontsListScrollWidget,"list");
     fontsListWidget = new Gtk::Box();
-    fontsListWidget->set_orientation(Gtk::ORIENTATION_VERTICAL);
-    fontsListScrollWidget->add(*fontsListWidget);
+    fontsListWidget->set_orientation(Gtk::Orientation::VERTICAL);
+    fontsListScrollWidget->set_child(*fontsListWidget);
 
     int fontIndex = 0;
     for (auto a : *fontFamilies) {
@@ -227,80 +237,79 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
             btn->set_tooltip_text(a->paths->at(0));
         }
 
-        btn->set_relief(Gtk::RELIEF_NONE);
+        btn->set_has_frame(false);
 
-        Gtk::VBox* btnBox = new Gtk::VBox();
-        btnBox->set_margin_left(8);
-        btnBox->set_margin_right(8);
+        Gtk::Box* btnBox = new Gtk::Box(Gtk::Orientation::VERTICAL);
+        btnBox->set_margin_start(8);
+        btnBox->set_margin_end(8);
         btnBox->set_spacing(8);
 
-        Gtk::HBox* btnHeaderBox = new Gtk::HBox();
+        Gtk::Box* btnHeaderBox = new Gtk::Box(Gtk::Orientation::HORIZONTAL);
         btnHeaderBox->set_spacing(4);
 
         Gtk::Label* btnLabel = new Gtk::Label();
-        btnLabel->set_alignment(Gtk::ALIGN_START);
+        btnLabel->set_halign(Gtk::Align::START);
         btnLabel->set_text(a->family);
-        btnHeaderBox->pack_start(*btnLabel,Gtk::PACK_SHRINK,0);
+        btnHeaderBox->append(*btnLabel);
         
         if (a->styles->size() > 1) {
             Gtk::Label* btnStyleCount = new Gtk::Label();
             btnStyleCount->set_sensitive(false);
-            btnStyleCount->set_alignment(Gtk::ALIGN_START);
+            btnStyleCount->set_halign(Gtk::Align::START);
             btnStyleCount->set_text(Glib::ustring::compose(_("%1 styles"),std::to_string(a->styles->size())));
-            btnHeaderBox->pack_start(*btnStyleCount,Gtk::PACK_SHRINK,0);
+            btnHeaderBox->append(*btnStyleCount);
         }
 
-        btnBox->add(*btnHeaderBox);
+        btnBox->append(*btnHeaderBox);
 
         Gtk::Label* lblPreview = new Gtk::Label();
         fontListItem->preview = lblPreview;
-        lblPreview->set_alignment(Gtk::ALIGN_START);
+        lblPreview->set_halign(Gtk::Align::START);
         lblPreview->set_text(getPreviewTextForLanguage(""));
-        btnBox->add(*lblPreview);
+        btnBox->append(*lblPreview);
 
-        btn->add(*btnBox);
+        btn->set_child(*btnBox);
 
-        fontsListWidget->add(*btn);
+        fontsListWidget->append(*btn);
         fontListItems->push_back(fontListItem);
         fontIndex += 1;
     }
     Glib::signal_idle().connect(sigc::mem_fun(*this, &MainWindow::queuedfontListScrollCallback));
-    fontViewWidget = new Gtk::HBox();
+    fontViewWidget = new Gtk::Box(Gtk::Orientation::HORIZONTAL);
     fontFamilyScrollWidget = new Gtk::ScrolledWindow();
-    fontFamilyScrollWidget->get_style_context()->add_class("font-family-window");
-    fontViewWidget->add(*fontFamilyScrollWidget);
+    fontFamilyScrollWidget->add_css_class("font-family-window");
+    fontViewWidget->append(*fontFamilyScrollWidget);
     fontStyleScrollWidget = new Gtk::ScrolledWindow();
-    fontStyleScrollWidget->get_style_context()->add_class("font-style-window");
-    fontViewWidget->add(*fontStyleScrollWidget);
+    fontStyleScrollWidget->add_css_class("font-style-window");
+    fontStyleScrollWidget->set_hexpand();
+    fontViewWidget->append(*fontStyleScrollWidget);
 
     fontFamilyBoxWidget = new Gtk::Box();
     
-    fontFamilyBoxWidget->set_orientation(Gtk::ORIENTATION_VERTICAL);
-    fontFamilyBoxWidget->get_style_context()->add_class("font-family-box");
-    fontFamilyBoxWidget->set_halign(Gtk::ALIGN_FILL);
-    fontFamilyBoxWidget->set_valign(Gtk::ALIGN_START);
+    fontFamilyBoxWidget->set_orientation(Gtk::Orientation::VERTICAL);
+    fontFamilyBoxWidget->add_css_class("font-family-box");
+    fontFamilyBoxWidget->set_halign(Gtk::Align::FILL);
+    fontFamilyBoxWidget->set_valign(Gtk::Align::START);
     fontFamilyLabelWidget = new Gtk::Label();
-    fontFamilyLabelWidget->get_style_context()->add_class("font-family-label");
-    fontFamilyLabelWidget->set_halign(Gtk::ALIGN_START);
+    fontFamilyLabelWidget->add_css_class("font-family-label");
+    fontFamilyLabelWidget->set_halign(Gtk::Align::START);
     fontFamilyLabelWidget->set_margin_bottom(8);
-    fontFamilyBoxWidget->pack_start(*fontFamilyLabelWidget,Gtk::PACK_SHRINK,0);
+    fontFamilyBoxWidget->append(*fontFamilyLabelWidget);
 
     fontFamilyEntryWidget = new Gtk::Entry();
     fontFamilyEntryWidget->set_placeholder_text(_("Enter text to preview in the font"));
     fontFamilyEntryWidget->set_margin_bottom(8);
     fontFamilyEntryWidget->signal_changed().connect(sigc::mem_fun(*this,&MainWindow::fontPreviewTextChanged));
-    fontFamilyBoxWidget->pack_start(*fontFamilyEntryWidget,Gtk::PACK_EXPAND_WIDGET,0);
+    fontFamilyEntryWidget->set_hexpand();
+    fontFamilyBoxWidget->append(*fontFamilyEntryWidget);
 
-    fontFamilyScrollWidget->add(*fontFamilyBoxWidget);
+    fontFamilyScrollWidget->set_child(*fontFamilyBoxWidget);
 
-    fontStyleRowsWidget = new Gtk::Box(Gtk::ORIENTATION_VERTICAL);
-    
-    fontStyleScrollWidget->add(*fontStyleRowsWidget);
-
-
+    fontStyleRowsWidget = new Gtk::Box(Gtk::Orientation::VERTICAL);
+    fontStyleScrollWidget->set_child(*fontStyleRowsWidget);
 
     stack->add(*fontViewWidget,"view");
-    this->show_all();
+    this->present();
     backButton->hide();
     installButton->hide();
     if (defaultFileName != NULL) {
@@ -373,18 +382,16 @@ void MainWindow::loadFont() {
     if (isInstalled) {
         installButton->set_label(_("Installed"));
         installButton->set_sensitive(false);
-        installButton->get_style_context()->remove_class(GTK_STYLE_CLASS_SUGGESTED_ACTION);
+        installButton->remove_css_class("suggested-action");
     } else {
         installButton->set_label(_("Install"));
         installButton->set_sensitive(true);
-        installButton->get_style_context()->add_class(GTK_STYLE_CLASS_SUGGESTED_ACTION);
+        installButton->add_css_class("suggested-action");
     }
 
-
-
-    installButton->show_all();
+    installButton->show();
     headerBarCustomText->set_text(familyData->family);
-    headerBar->set_custom_title(*headerBarCustomText);
+    headerBar->set_title_widget(*headerBarCustomText);
     headerBarCustomText->show();
     fontFamilyLabelWidget->set_text(familyData->family);
     for (FontStyleListItem* fontStyleListItem : *fontStyleListItems) {
@@ -412,27 +419,27 @@ void MainWindow::loadFont() {
 
         btn->set_tooltip_text(style->path);
 
-        btn->get_style_context()->add_class("font-style-button");
-        btn->set_relief(Gtk::RELIEF_NONE);
+        btn->add_css_class("font-style-button");
+        btn->set_has_frame(false);
 
-        Gtk::VBox* btnBox = new Gtk::VBox();
+        Gtk::Box* btnBox = new Gtk::Box(Gtk::Orientation::VERTICAL);
         btnBox->set_spacing(8);
 
-        Gtk::HBox* btnHeaderBox = new Gtk::HBox();
+        Gtk::Box* btnHeaderBox = new Gtk::Box(Gtk::Orientation::HORIZONTAL);
         btnHeaderBox->set_spacing(4);
 
         Gtk::Label* lblName = new Gtk::Label();
-        lblName->set_alignment(Gtk::ALIGN_START);
+        // lblName->set_alignment(Gtk::ALIGN_START);
         lblName->set_text(_(style->name.c_str()));
-        btnHeaderBox->pack_start(*lblName,Gtk::PACK_SHRINK,0);
+        btnHeaderBox->append(*lblName);
         
         Gtk::Label* lblWeight = new Gtk::Label();
         lblWeight->set_sensitive(false);
-        lblWeight->set_alignment(Gtk::ALIGN_START);
+        // lblWeight->set_alignment(Gtk::ALIGN_START);
         lblWeight->set_text(std::to_string(style->weight));
-        btnHeaderBox->pack_start(*lblWeight,Gtk::PACK_SHRINK,0);
+        btnHeaderBox->append(*lblWeight);
 
-        btnBox->add(*btnHeaderBox);
+        btnBox->append(*btnHeaderBox);
 
         GFile* file = g_file_new_for_path(style->path.c_str());
         char* fileURI = g_file_get_uri(file);
@@ -444,15 +451,16 @@ void MainWindow::loadFont() {
         sushi_font_widget_set_text(fontWidget,(gchar*)getPreviewTextForLanguage(""));
         
         Gtk::Widget* fontWidgetMM = Glib::wrap(GTK_WIDGET(fontWidget));
-        btnBox->add(*fontWidgetMM);
+        btnBox->append(*fontWidgetMM);
 
         fontStyleListItem->fontWidget = fontWidget;
         fontStyleListItem->fontWidgetMM = fontWidgetMM;
 
-        btn->add(*btnBox);
+        btn->set_child(*btnBox);
+        btn->set_hexpand();
 
-        btn->show_all();
-        fontFamilyBoxWidget->pack_start(*btn,Gtk::PACK_EXPAND_WIDGET,0);
+        btn->show();
+        fontFamilyBoxWidget->append(*btn);
 
         fontStyleListItems->push_back(fontStyleListItem);
 
@@ -487,25 +495,23 @@ void MainWindow::addInfoText(std::string name,std::string value) {
     }
     row->lblValue->set_text(valueText);
     
-    row->lblName->set_margin_left(8);
-    row->lblName->set_margin_right(8);
-    row->lblValue->set_margin_left(8);
-    row->lblValue->set_margin_right(8);
+    row->lblName->set_margin_start(8);
+    row->lblName->set_margin_end(8);
+    row->lblValue->set_margin_start(8);
+    row->lblValue->set_margin_end(8);
 
     row->lblName->set_margin_top(8);
-    row->lblName->get_style_context()->add_class("font-info-name");
+    row->lblName->add_css_class("font-info-name");
 
-    row->lblName->set_halign(Gtk::ALIGN_START);
-    row->lblValue->set_halign(Gtk::ALIGN_START);
+    row->lblName->set_halign(Gtk::Align::START);
+    row->lblValue->set_halign(Gtk::Align::START);
     row->lblValue->set_selectable(true);
 
-    
+    fontStyleRowsWidget->append(*row->lblName);
+    fontStyleRowsWidget->append(*row->lblValue);
 
-    fontStyleRowsWidget->add(*row->lblName);
-    fontStyleRowsWidget->add(*row->lblValue);
-
-    row->lblName->show_all();
-    row->lblValue->show_all();
+    row->lblName->show();
+    row->lblValue->show();
     
     fontStyleRows->push_back(row);
 }
@@ -567,10 +573,10 @@ void MainWindow::switchToFontList() {
     stack->set_visible_child("list");
     backButton->hide();
     installButton->hide();
-    searchBar->show_all();
-    searchButton->show_all();
-    googleFontsButton->show_all();
-    gtk_header_bar_set_custom_title(headerBar->gobj(),nullptr);
+    searchBar->show();
+    searchButton->show();
+    googleFontsButton->show();
+    gtk_header_bar_set_title_widget(headerBar->gobj(), nullptr);
 }
 
 bool MainWindow::queuedfontListScrollCallback() {
@@ -635,7 +641,7 @@ void MainWindow_installFontTask(GTask *task, gpointer source_object, gpointer ta
     }
 
     try {
-        originalFile->copy(finalFile, Gio::File::SlotFileProgress(), Glib::wrap(cancellable), Gio::FILE_COPY_NONE);
+        originalFile->copy(finalFile, Gio::File::SlotFileProgress(), Glib::wrap(cancellable));
     } catch (Glib::Error& error) {
         g_task_return_error(task, g_error_copy(error.gobj()));
         return;
@@ -654,10 +660,10 @@ void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, g
         else errorMessage = new std::string(_("Unknown error occured"));
         
         std::cout << "Error installing font: " << *errorMessage << std::endl;
-        Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*self,_("Error installing font"),false,Gtk::MESSAGE_ERROR,Gtk::BUTTONS_OK,true);
+        Gtk::MessageDialog* dialog = new Gtk::MessageDialog(*self,_("Error installing font"),false,Gtk::MessageType::ERROR,Gtk::ButtonsType::OK,true);
         dialog->set_secondary_text(*errorMessage);
-        dialog->show_all();
-        dialog->signal_response().connect_notify([dialog](int response){delete dialog;});
+        dialog->show();
+        dialog->signal_response().connect([dialog](int response){delete dialog;});
         self->loadFont();
         return;
     }
@@ -682,11 +688,12 @@ void MainWindow_installFontFinished(GObject *source_object, GAsyncResult *res, g
     self->loadFont();
 }
 
-bool MainWindow::windowKeyPressEvent(GdkEventKey* event) {
-    if (event->keyval == GDK_KEY_f && event->state & GDK_CONTROL_MASK) {
+bool MainWindow::windowKeyPressEvent(guint keyval, guint keycode, Gdk::ModifierType state) {
+    if (keyval == GDK_KEY_f && state == Gdk::ModifierType::CONTROL_MASK) {
         this->searchBar->set_search_mode(!this->searchBar->get_search_mode());
+        return true;
     }
-    return this->searchBar->handle_event(event);
+    return false;
 }
 
 void MainWindow::searchUpdated() {
@@ -705,18 +712,23 @@ void MainWindow::searchUpdated() {
 }
 
 void MainWindow::openGoogleFonts() {
+    /*
     if (googleFontsWindow != NULL) {
         googleFontsWindow->present();
         return;
     }
 
-    googleFontsWindow = new GoogleFontsWindow(::loadFonts(false));
+    googleFontsWindow = new GoogleFontsWindow(::loadFonts(false));*/
 }
 
 MainWindow::~MainWindow() {
-    if (googleFontsWindow != NULL) {
-        delete googleFontsWindow;
-    }
+    // if (googleFontsWindow != NULL) {
+    //     delete googleFontsWindow;
+    // }
+}
+
+void activate() {
+    Gtk::Window* win = NULL;
 }
 
 int main(int argc, char** argv) {
@@ -744,23 +756,19 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    Gtk::Main* app = new Gtk::Main();
+    auto app = Gtk::Application::create("me.chocolateimage.fontviewer", Gio::Application::Flags::DEFAULT_FLAGS);
     FcInit();
     std::string* defaultFileName = NULL;
     if (argc > 1) {
         defaultFileName = new std::string(argv[1]);
     }
 
-
-    Gtk::Window* win = NULL;
     if (entryGoogleFontsValue) {
-        auto fonts = loadFonts(false);
-        win = new GoogleFontsWindow(fonts);
+        // auto fonts = loadFonts(false);
+        // win = new GoogleFontsWindow(fonts);
+        return 0;
     } else {
         auto fonts = loadFonts(true);
-        win = new MainWindow(fonts, defaultFileName);
+        return app->make_window_and_run<MainWindow>(argc, argv, fonts, defaultFileName);
     }
-    app->run(*win);
-    delete win;
-    return 0;
 }

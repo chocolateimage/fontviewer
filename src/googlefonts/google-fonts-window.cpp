@@ -62,7 +62,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
         "notebook tabs {padding-left: 60px; padding-right: 60px;} "
         ".disabled { color: @insensitive_fg_color; }"
         );
-    this->get_style_context()->add_provider(provider,GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    this->get_style_context()->add_provider_for_display(Gdk::Display::get_default(), provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     this->stylePreviewText = "";
     this->userOverridenStylePreviewText = "";

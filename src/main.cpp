@@ -144,7 +144,7 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
         ".font-info-name {font-weight: bold;} "
         ".font-style-button {background: none; border: none;} " // at the moment there are no plans to implement an action on button click, so just hide the button style
         );
-    this->get_style_context()->add_provider(provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    this->get_style_context()->add_provider_for_display(Gdk::Display::get_default(), provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     fontListItems = new std::vector<FontListItem*>();
     fontStyleListItems = new std::vector<FontStyleListItem*>();
     fontStyleRows = new std::vector<FontStyleRow*>();

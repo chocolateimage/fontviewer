@@ -72,7 +72,6 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     this->set_default_size(1000, 700);
     this->set_title("Google Fonts");
 
-    // headerBar.set_show_close_button();
     headerBarCustomText.show();
     backButton.set_image_from_icon_name("go-previous-symbolic");
     backButton.signal_clicked().connect(sigc::mem_fun(*this,&GoogleFontsWindow::switchToFontList));
@@ -95,7 +94,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     spinner.start();
     stack.add(spinner, "loading");
 
-    // scrolledWindow.get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
+    scrolledWindow.get_vadjustment()->signal_value_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::fontListScroll));
     familyListBox.set_orientation(Gtk::Orientation::VERTICAL);
     scrolledWindow.set_child(familyListBox);
     stack.add(scrolledWindow, "list");
@@ -106,7 +105,7 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     boxSpecimen.set_margin_top(18);
     boxSpecimen.set_spacing(8);
 
-    // specimenTitle.set_alignment(Gtk::ALIGN_START);
+    specimenTitle.set_halign(Gtk::Align::START);
     setFontSizeOfLabel(specimenTitle, 32);
     specimenHeader.append(specimenTitle);
 
@@ -116,12 +115,12 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
 
     boxSpecimen.append(specimenHeader);
 
-    // specimenAuthors.set_alignment(Gtk::ALIGN_START);
+    specimenAuthors.set_halign(Gtk::Align::START);
     specimenAuthors.set_sensitive(false);
     specimenAuthors.set_margin_bottom(12);
     boxSpecimen.append(specimenAuthors);
 
-    // specimenStylesLabel.set_alignment(Gtk::ALIGN_START);
+    specimenStylesLabel.set_halign(Gtk::Align::START);
     setFontSizeOfLabel(specimenStylesLabel, 18);
     specimenStylesLabel.set_text(_("Styles"));
     boxSpecimen.append(specimenStylesLabel);
@@ -142,12 +141,12 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     boxLicense.set_margin_top(18);
     boxLicense.set_spacing(12);
 
-    // licenseTitleLabel.set_alignment(Gtk::ALIGN_START);
+    licenseTitleLabel.set_halign(Gtk::Align::START);
     setFontSizeOfLabel(licenseTitleLabel, 18);
     licenseTitleLabel.set_text(_("License"));
     boxLicense.append(licenseTitleLabel);
 
-    // licenseLabel.set_alignment(Gtk::ALIGN_START);
+    licenseLabel.set_halign(Gtk::Align::START);
     licenseLabel.set_selectable(true);
     boxLicense.append(licenseLabel);
 
@@ -354,7 +353,7 @@ void GoogleFontsWindow::switchToFontList() {
     this->stack.set_visible_child("list");
     this->currentFontListItem = NULL;
 
-    // gtk_header_bar_set_custom_title(headerBar.gobj(), NULL);
+    gtk_header_bar_set_title_widget(headerBar.gobj(), NULL);
 }
 
 void GoogleFontsWindow::loadLicense() {
@@ -515,10 +514,10 @@ void GoogleFontsWindow::switchToFontFamily(std::shared_ptr<GoogleFontsFamilyList
     this->backButton.show();
     this->stack.set_visible_child("view");
     this->notebook.set_current_page(0);
-    // this->swSpecimen.get_vadjustment()->set_value(0);
+    this->swSpecimen.get_vadjustment()->set_value(0);
 
     headerBarCustomText.set_text(fontListItem->fontFamily->displayName);
-    // headerBar.set_custom_title(headerBarCustomText);
+    headerBar.set_title_widget(headerBarCustomText);
 
     specimenTitle.set_text(fontListItem->fontFamily->displayName);
 

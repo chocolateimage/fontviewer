@@ -221,27 +221,23 @@ static gint get_size_from_face(FT_Face face)
   }
 }
 
-static void
-sushi_font_widget_get_preferred_width (GtkWidget *drawing_area,
-                                       gint *minimum_width,
-                                       gint *natural_width)
+static void sushi_font_widget_measure(GtkWidget* widget,
+                                      GtkOrientation orientation,
+                                      int for_size,
+                                      int* minimum,
+                                      int* natural,
+                                      int* minimum_baseline,
+                                      int* natural_baseline)
 {
-  *minimum_width = 0;
-  *natural_width = 0;
+  if (orientation == GTK_ORIENTATION_VERTICAL) {
+    *minimum = 40;
+    *natural = 40;
+  }
 }
 
 static void
-sushi_font_widget_get_preferred_height (GtkWidget *drawing_area,
-                                        gint *minimum_height,
-                                        gint *natural_height)
-{
-  *minimum_height = 40;
-  *natural_height = 40;
-}
-
-static gboolean
-sushi_font_widget_draw (GtkWidget *drawing_area,
-                        cairo_t *cr)
+sushi_font_widget_snapshot (GtkWidget *drawing_area,
+                            GtkSnapshot *snapshot)
 {
   SushiFontWidget *self = SUSHI_FONT_WIDGET (drawing_area);
   gint font_size;
@@ -253,10 +249,10 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   gint allocated_width, allocated_height;
 
   if (face == NULL)
-    return FALSE;
+    return;
 
   if (self->text == NULL)
-    return FALSE;
+    return;
 
   context = gtk_widget_get_style_context (drawing_area);
   if (!gtk_style_context_has_class(context,"sushi-font-widget")) {
@@ -272,6 +268,8 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
 
   /* do stuff with text */
 
+  graphene_rect_t rect = GRAPHENE_RECT_INIT(0, 0, allocated_width, allocated_height);
+  cairo_t* cr = gtk_snapshot_append_cairo(snapshot, &rect);
   cairo_surface_t* crsurface = cairo_get_target(cr);
   cairo_surface_t* cr2surface = cairo_surface_create_similar_image(
     crsurface,
@@ -309,8 +307,6 @@ sushi_font_widget_draw (GtkWidget *drawing_area,
   cairo_surface_destroy(cr2surface);
 
   cairo_font_face_destroy(font);
-
-  return FALSE;
 }
 
 static void
@@ -321,6 +317,7 @@ font_face_async_ready_cb (GObject *object,
   SushiFontWidget *self = user_data;
   g_autoptr(GError) error = NULL;
 
+  g_clear_pointer(&self->face_contents, g_free);
   self->face =
     sushi_new_ft_face_from_uri_finish (result,
                                        &self->face_contents,
@@ -465,9 +462,8 @@ sushi_font_widget_class_init (SushiFontWidgetClass *klass)
   oclass->get_property = sushi_font_widget_get_property;
   oclass->constructed = sushi_font_widget_constructed;
 
-  // wclass->draw = sushi_font_widget_draw;
-  // wclass->get_preferred_width = sushi_font_widget_get_preferred_width;
-  // wclass->get_preferred_height = sushi_font_widget_get_preferred_height;
+  wclass->snapshot = sushi_font_widget_snapshot;
+  wclass->measure = sushi_font_widget_measure;
 
   properties[PROP_URI] =
     g_param_spec_string ("uri",

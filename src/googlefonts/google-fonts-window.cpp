@@ -5,6 +5,7 @@
 #include <gtkmm/separator.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/adjustment.h>
+#include <gtkmm/eventcontrollerkey.h>
 #include <glibmm/dispatcher.h>
 #include <glibmm/uriutils.h>
 #include <glibmm/miscutils.h>
@@ -82,7 +83,10 @@ GoogleFontsWindow::GoogleFontsWindow(std::vector<FontFamilyData*>* fonts) {
     searchEntry.signal_changed().connect(sigc::mem_fun(*this,&GoogleFontsWindow::searchUpdated));
     searchEntry.set_sensitive(false);
     headerBar.pack_end(searchEntry);
-    // this->signal_key_press_event().connect(sigc::mem_fun(*this, &GoogleFontsWindow::windowKeyPressEvent));
+
+    auto keyController = Gtk::EventControllerKey::create();
+    keyController->signal_key_pressed().connect(sigc::mem_fun(*this, &GoogleFontsWindow::windowKeyPressEvent), false);
+    this->add_controller(keyController);
 
     stack.set_transition_duration(200);
     stack.set_transition_type(Gtk::StackTransitionType::CROSSFADE);

@@ -13,7 +13,7 @@
 #include <gtkmm/searchentry.h>
 #include <gtkmm/stack.h>
 #include "font.hpp"
-// #include "googlefonts/google-fonts-window.hpp"
+#include "googlefonts/google-fonts-window.hpp"
 
 class MainWindow: public Gtk::ApplicationWindow {
     public:
@@ -61,5 +61,5 @@ class MainWindow: public Gtk::ApplicationWindow {
 
         std::vector<FontFamilyData*>* fontFamilies = NULL;
 
-        // GoogleFontsWindow* googleFontsWindow;
+        GoogleFontsWindow* googleFontsWindow;
 };

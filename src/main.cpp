@@ -152,7 +152,7 @@ MainWindow::MainWindow(std::vector<FontFamilyData*>* fonts, std::string* default
     currentPreviewText = NULL;
     currentFontPath = NULL;
     currentFontIndex = -1;
-    // googleFontsWindow = NULL;
+    googleFontsWindow = NULL;
     headerBar = new Gtk::HeaderBar();
     headerBarCustomText = new Gtk::Label();
     backButton = new Gtk::Button();
@@ -429,13 +429,13 @@ void MainWindow::loadFont() {
         btnHeaderBox->set_spacing(4);
 
         Gtk::Label* lblName = new Gtk::Label();
-        // lblName->set_alignment(Gtk::ALIGN_START);
+        lblName->set_halign(Gtk::Align::START);
         lblName->set_text(_(style->name.c_str()));
         btnHeaderBox->append(*lblName);
         
         Gtk::Label* lblWeight = new Gtk::Label();
         lblWeight->set_sensitive(false);
-        // lblWeight->set_alignment(Gtk::ALIGN_START);
+        lblWeight->set_halign(Gtk::Align::START);
         lblWeight->set_text(std::to_string(style->weight));
         btnHeaderBox->append(*lblWeight);
 
@@ -712,23 +712,18 @@ void MainWindow::searchUpdated() {
 }
 
 void MainWindow::openGoogleFonts() {
-    /*
     if (googleFontsWindow != NULL) {
         googleFontsWindow->present();
         return;
     }
 
-    googleFontsWindow = new GoogleFontsWindow(::loadFonts(false));*/
+    googleFontsWindow = new GoogleFontsWindow(::loadFonts(false));
 }
 
 MainWindow::~MainWindow() {
-    // if (googleFontsWindow != NULL) {
-    //     delete googleFontsWindow;
-    // }
-}
-
-void activate() {
-    Gtk::Window* win = NULL;
+    if (googleFontsWindow != NULL) {
+        delete googleFontsWindow;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -764,9 +759,8 @@ int main(int argc, char** argv) {
     }
 
     if (entryGoogleFontsValue) {
-        // auto fonts = loadFonts(false);
-        // win = new GoogleFontsWindow(fonts);
-        return 0;
+        auto fonts = loadFonts(false);
+        return app->make_window_and_run<GoogleFontsWindow>(argc, argv, fonts);
     } else {
         auto fonts = loadFonts(true);
         return app->make_window_and_run<MainWindow>(argc, argv, fonts, defaultFileName);

@@ -32,7 +32,7 @@ class GoogleFontsWindow: public Gtk::Window {
         void userOverridenStylePreviewTextChanged();
         void installButtonReload();
         void installButtonClick();
-        bool windowKeyPressEvent(GdkEvent* event);
+        bool windowKeyPressEvent(guint keyval, guint keycode, Gdk::ModifierType state);
 
         std::string getStylePreviewText();
 

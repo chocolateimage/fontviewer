@@ -1,15 +1,16 @@
-# German translations for fontviewer package.
+# Portuguese (Portugal) translations for fontviewer package.
 # Copyright (C) 2025 THE fontviewer'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the fontviewer package.
 # Automatically generated, 2025.
+# Gustavo Papi <gusbemacbe@gmail.com>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: fontviewer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-28 11:35-0300\n"
-"PO-Revision-Date: 2025-12-28 11:35-0300\n"
-"Last-Translator: Automatically generated\n"
+"PO-Revision-Date: 2025-12-28 16:50-0300\n"
+"Last-Translator: Gustavo Papi <gusbemacbe@gmail.com>\n"
 "Language-Team: none\n"
 "Language: pt_PT\n"
 "MIME-Version: 1.0\n"

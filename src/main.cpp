@@ -12,6 +12,7 @@
 #include <glibmm/main.h>
 #include <glibmm/miscutils.h>
 #include <fontconfig/fontconfig.h>
+#include <fontconfig/fcfreetype.h>
 #include <locale.h>
 #include FT_FREETYPE_H
 #include FT_TYPE1_TABLES_H
